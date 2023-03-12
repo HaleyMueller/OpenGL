@@ -10,13 +10,19 @@
   <ItemGroup>
     <PackageReference Include="freetype" Version="2.8.0.1" />
     <PackageReference Include="OpenTK" Version="4.7.7" />
-    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="SharpFont">
       <HintPath>bin\SharpFont.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\Shaders\Texture.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

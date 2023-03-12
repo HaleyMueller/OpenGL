@@ -11,6 +11,7 @@ using OpenTK.Mathematics;
 using OpenTK.Graphics;
 using System.Drawing.Imaging;
 using System.Drawing;
+using OpenGL.App.Management;
 
 namespace OpenGL.App
 {
@@ -19,13 +20,9 @@ namespace OpenGL.App
         private VertexBuffer vertexBuffer; //Reference to Vertices that will be on the gpu
         private IndexBuffer indexBuffer;
         private ShaderProgram shaderProgram;
-        private VertexArray vertexArray; 
+        private VertexArray vertexArray;
 
-        private int vertexCount = 0;
-        private int indexCount = 0;
-
-        private float colorFactor = 1;
-        private float deltaColorFactor = 1f / 240f;
+        private Texture2D _texture;
 
         public Game(int width = 1280, int height = 768) : base(
             GameWindowSettings.Default, 
@@ -61,43 +58,21 @@ namespace OpenGL.App
 
             Random rand = new Random();
 
-            int boxCount = 100;
-
-            VertexPositionColor[] vertices = new VertexPositionColor[boxCount * 4]; //4 vertices per box
-            this.vertexCount = 0;
-            for (int i = 0; i < boxCount; i++)
+            VertexPositionTexture[] vertices = new VertexPositionTexture[]
             {
-                int w = rand.Next(32, 128);
-                int h = rand.Next(32, 128);
-                int x = rand.Next(0, windowWidth - w);
-                int y = rand.Next(0, windowHeight - h);
+                new VertexPositionTexture(new Vector2(.5f, .5f), new Vector2(1, 1)),
+                new VertexPositionTexture(new Vector2(.5f, -.5f), new Vector2(1, 0)),
+                new VertexPositionTexture(new Vector2(-.5f, -.5f), new Vector2(0, 0)),
+                new VertexPositionTexture(new Vector2(-.5f, .5f), new Vector2(0, 1))
+            };
 
-                float r = (float)rand.NextDouble();
-                float g = (float)rand.NextDouble();
-                float b = (float)rand.NextDouble();
-
-                vertices[this.vertexCount++] = new VertexPositionColor(new Vector2(x, y + h), new Color4(r, g, b, 1f));
-                vertices[this.vertexCount++] = new VertexPositionColor(new Vector2(x + w, y + h), new Color4(r, g, b, 1f));
-                vertices[this.vertexCount++] = new VertexPositionColor(new Vector2(x + w, y), new Color4(r, g, b, 1f));
-                vertices[this.vertexCount++] = new VertexPositionColor(new Vector2(x, y), new Color4(r, g, b, 1f));
-            }
-
-            int[] indices = new int[boxCount * 6]; //6 = 2 triangles indices that make up the box
-            this.indexCount = 0;
-            this.vertexCount = 0;
-            for (int i = 0; i < boxCount; i++)
+            int[] indices = new int[]
             {
-                indices[this.indexCount++] = 0 + this.vertexCount;
-                indices[this.indexCount++] = 1 + this.vertexCount;
-                indices[this.indexCount++] = 2 + this.vertexCount;
-                indices[this.indexCount++] = 0 + this.vertexCount;
-                indices[this.indexCount++] = 2 + this.vertexCount;
-                indices[this.indexCount++] = 3 + this.vertexCount;
+                0, 1, 2, 0, 2, 3
+            };
 
-                vertexCount += 4;
-            }
 
-            this.vertexBuffer = new VertexBuffer(VertexPositionColor.VertexInfo, vertices.Length, true);
+            this.vertexBuffer = new VertexBuffer(VertexPositionTexture.VertexInfo, vertices.Length, true);
             this.vertexBuffer.SetData(vertices, vertices.Length);
 
             this.indexBuffer = new IndexBuffer(indices.Length, true);
@@ -105,51 +80,19 @@ namespace OpenGL.App
 
             this.vertexArray = new VertexArray(this.vertexBuffer);
 
-            string vertexShaderCode = //positions
-                @"
-                #version 330 core
-
-                uniform vec2 ViewportSize; //Uniforms variables that can be be pushed to gpu differently. uniform are per-primitive parameters (constant during an entire draw call) ;
-                uniform float ColorFactor; //0-1 
-
-                layout (location = 0) in vec2 aPosition; //attribute variables start with 'a'. attribute are per-vertex parameters (typically : positions, normals, colors, UVs, ...) ;
-                layout (location = 1) in vec4 aColor;
-
-                out vec4 vColor; //Goes to pixelShader code
-
-                void main()
-                {
-                    float nx = aPosition.x / ViewportSize.x * 2f - 1f;
-                    float ny = aPosition.y / ViewportSize.y * 2f - 1f;
-                    gl_Position = vec4(nx, ny, 0f, 1f);
-
-                    vColor = aColor * ColorFactor;
-                }
-                ";
-
-            string pixelShaderCode = //fragment shader; color setting; every pixel passing out
-                @"
-                #version 330 core
-
-                in vec4 vColor;     //From FragmentShader       
-
-                out vec4 pixelColor;
-
-                void main()
-                {
-                    pixelColor = vColor;
-                }
-                ";
-
-            this.shaderProgram = new ShaderProgram(vertexShaderCode, pixelShaderCode);
-
-
+            this.shaderProgram = new ShaderProgram("Resources/Shaders/Texture.glsl");
 
             int[] viewport = new int[4];
             GL.GetInteger(GetPName.Viewport, viewport); //Retrieve info from gpu
 
-            this.shaderProgram.SetUniform("ViewportSize", (float)viewport[2], (float)viewport[3]);
-            this.shaderProgram.SetUniform("ColorFactor", colorFactor);
+            _texture = ResourceManager.Instance.LoadTexture("C:\\tmp\\test.png");
+            _texture.Use();
+
+            //this.shaderProgram.SetUniform("texCoord", _texture.Handle);
+
+
+            //this.shaderProgram.SetUniform("ViewportSize", (float)viewport[2], (float)viewport[3]);
+            //this.shaderProgram.SetUniform("ColorFactor", colorFactor);
 
             base.OnLoad();
         }
@@ -167,21 +110,21 @@ namespace OpenGL.App
 
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
-            this.colorFactor += this.deltaColorFactor;
+            //this.colorFactor += this.deltaColorFactor;
 
-            if (this.colorFactor >= 1f)
-            {
-                this.colorFactor = 1f;
-                this.deltaColorFactor *= -1f;
-            }
+            //if (this.colorFactor >= 1f)
+            //{
+            //    this.colorFactor = 1f;
+            //    this.deltaColorFactor *= -1f;
+            //}
 
-            if (this.colorFactor <= 0f)
-            {
-                this.colorFactor = 0f;
-                this.deltaColorFactor *= -1f;
-            }
+            //if (this.colorFactor <= 0f)
+            //{
+            //    this.colorFactor = 0f;
+            //    this.deltaColorFactor *= -1f;
+            //}
 
-            this.shaderProgram.SetUniform("ColorFactor", this.colorFactor);
+            //this.shaderProgram.SetUniform("ColorFactor", this.colorFactor);
 
             base.OnUpdateFrame(args);
         }
@@ -196,7 +139,7 @@ namespace OpenGL.App
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.indexBuffer.IndexBufferHandle); //Use indices array linked to vertex array above
 
-            GL.DrawElements(PrimitiveType.Triangles, this.indexCount, DrawElementsType.UnsignedInt, 0); //Tell it to draw with the indices array
+            GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0); //Tell it to draw with the indices array
 
             //GL.DrawArrays(PrimitiveType.Triangles, 0, 3); //Draw call to setup triangle on GPU //THIS IS ONLY FOR DIRECT COORDS
 

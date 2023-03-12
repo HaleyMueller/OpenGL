@@ -47,16 +47,18 @@ namespace OpenGL.App
         private readonly ShaderUniform[] Uniforms;
         private readonly ShaderAttribute[] Attributes;
 
-        public ShaderProgram(string vertexShaderCode, string pixelShaderCode) 
+        public ShaderProgram(string fileName) 
         {
             this.disposed = false;
 
-            if (CompileVertexShader(vertexShaderCode, out this.VertexShaderHandle, out string vertexShaderCompileError) == false) //If errored
+            var shader = LoadShader(fileName);
+
+            if (CompileVertexShader(shader.VertexShader, out this.VertexShaderHandle, out string vertexShaderCompileError) == false) //If errored
             {
                 throw new ArgumentException(vertexShaderCompileError);
             }
 
-            if (CompilePixelShader(pixelShaderCode, out this.PixelShaderHandle, out string pixelShaderCompileError) == false) //If errored
+            if (CompilePixelShader(shader.FragmentShader, out this.PixelShaderHandle, out string pixelShaderCompileError) == false) //If errored
             {
                 throw new ArgumentException(pixelShaderCompileError);
             }
@@ -67,6 +69,7 @@ namespace OpenGL.App
             this.Attributes = CreateAttributeList(this.ShaderProgramHandle);
         }
 
+        #region OpenGL
         public ShaderUniform[] GetUniformList()
         {
             ShaderUniform[] result = new ShaderUniform[this.Uniforms.Length];
@@ -218,6 +221,76 @@ namespace OpenGL.App
 
             return attributes;
         }
+
+        #endregion
+
+        #region FileHandler
+
+        public class Shader
+        {
+            public readonly string VertexShader;
+            public readonly string FragmentShader;
+
+            public Shader(string vertexShader, string fragmentShader)
+            {
+                VertexShader = vertexShader;
+                FragmentShader = fragmentShader;
+            }
+        }
+
+        public static Shader LoadShader(string fileName)
+        {
+            ReadFile(fileName, out string vertexShader, out string pixelShader);
+            return new Shader(vertexShader, pixelShader);
+        }
+
+        private static bool ReadFile(string fileName, out string vertexShader, out string pixelShader)
+        {
+            using (StreamReader sr = new StreamReader(fileName))
+            {
+                bool isVertexShaderMode = true;
+
+                StringBuilder sbVertex = new StringBuilder();
+                StringBuilder sbPixel = new StringBuilder();
+
+                String line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    // Process line
+                    if (line.StartsWith("#VertexShader"))
+                    {
+                        isVertexShaderMode = true;
+                        continue;
+                    }
+                    else if (line.StartsWith("#FragmentShader"))
+                    {
+                        isVertexShaderMode = false;
+                        continue;
+                    }
+
+                    if (isVertexShaderMode)
+                    {
+                        sbVertex.AppendLine(line);
+                    }
+                    else
+                    {
+                        sbPixel.AppendLine(line);
+                    }
+                }
+
+                vertexShader = sbVertex.ToString();
+                pixelShader = sbPixel.ToString();
+
+                if (string.IsNullOrEmpty(vertexShader) || string.IsNullOrEmpty(pixelShader))
+                {
+                    throw new Exception("Shader file is missing headers");
+                }
+            }
+
+            return true;
+        }
+
+        #endregion
 
         ~ShaderProgram()
         {
