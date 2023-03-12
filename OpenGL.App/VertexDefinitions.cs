@@ -87,4 +87,28 @@ namespace OpenGL.App
         }
 
     }
+
+    public readonly struct VertexPositionTextureColor
+    {
+        public readonly Vector2 Position;
+        public readonly Vector2 TexCoord;
+        public readonly Color4 Color;
+
+        public static readonly VertexInfo VertexInfo =
+        new VertexInfo
+        (
+            typeof(VertexPositionTextureColor),
+            new VertexAttribute("Position", 0, 2, 0),
+            new VertexAttribute("TexCoord", 1, 2, 2 * sizeof(float)), //TODO automatically create offsets
+            new VertexAttribute("Color", 2, 4, 4 * sizeof(float))
+        );
+
+        public VertexPositionTextureColor(Vector2 position, Vector2 texCoord, Color4 color)
+        {
+            this.Position = position;
+            this.TexCoord = texCoord;
+            this.Color = color;
+        }
+
+    }
 }

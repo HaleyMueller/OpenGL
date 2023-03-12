@@ -58,12 +58,12 @@ namespace OpenGL.App
 
             Random rand = new Random();
 
-            VertexPositionTexture[] vertices = new VertexPositionTexture[]
+            VertexPositionTextureColor[] vertices = new VertexPositionTextureColor[]
             {
-                new VertexPositionTexture(new Vector2(.5f, .5f), new Vector2(1, 1)),
-                new VertexPositionTexture(new Vector2(.5f, -.5f), new Vector2(1, 0)),
-                new VertexPositionTexture(new Vector2(-.5f, -.5f), new Vector2(0, 0)),
-                new VertexPositionTexture(new Vector2(-.5f, .5f), new Vector2(0, 1))
+                new VertexPositionTextureColor(new Vector2(.5f, .5f), new Vector2(1, 1), new Color4(1f, 0f, 0f, 1f)),
+                new VertexPositionTextureColor(new Vector2(.5f, -.5f), new Vector2(1, 0), new Color4(0f, 1f, 0f, 1f)),
+                new VertexPositionTextureColor(new Vector2(-.5f, -.5f), new Vector2(0, 0), new Color4(0f, 0f, 1f, 1f)),
+                new VertexPositionTextureColor(new Vector2(-.5f, .5f), new Vector2(0, 1), new Color4(1f, 1f, 1f, 1f))
             };
 
             int[] indices = new int[]
@@ -72,7 +72,7 @@ namespace OpenGL.App
             };
 
 
-            this.vertexBuffer = new VertexBuffer(VertexPositionTexture.VertexInfo, vertices.Length, true);
+            this.vertexBuffer = new VertexBuffer(VertexPositionTextureColor.VertexInfo, vertices.Length, true);
             this.vertexBuffer.SetData(vertices, vertices.Length);
 
             this.indexBuffer = new IndexBuffer(indices.Length, true);
@@ -80,7 +80,7 @@ namespace OpenGL.App
 
             this.vertexArray = new VertexArray(this.vertexBuffer);
 
-            this.shaderProgram = new ShaderProgram("Resources/Shaders/Texture.glsl");
+            this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithColor.glsl");
 
             int[] viewport = new int[4];
             GL.GetInteger(GetPName.Viewport, viewport); //Retrieve info from gpu
