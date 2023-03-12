@@ -9,6 +9,8 @@ using OpenTK.Windowing.Desktop;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Graphics;
+using System.Drawing.Imaging;
+using System.Drawing;
 
 namespace OpenGL.App
 {
@@ -16,11 +18,14 @@ namespace OpenGL.App
     {
         private VertexBuffer vertexBuffer; //Reference to Vertices that will be on the gpu
         private IndexBuffer indexBuffer;
-        private int shaderProgramHandle;
+        private ShaderProgram shaderProgram;
         private VertexArray vertexArray; 
 
         private int vertexCount = 0;
         private int indexCount = 0;
+
+        private float colorFactor = 1;
+        private float deltaColorFactor = 1f / 240f;
 
         public Game(int width = 1280, int height = 768) : base(
             GameWindowSettings.Default, 
@@ -105,8 +110,9 @@ namespace OpenGL.App
                 #version 330 core
 
                 uniform vec2 ViewportSize; //Uniforms variables that can be be pushed to gpu differently
+                uniform float ColorFactor; //0-1 
 
-                layout (location = 0) in vec2 aPosition; //attribute variables start with A
+                layout (location = 0) in vec2 aPosition; //attribute variables start with 'a'
                 layout (location = 1) in vec4 aColor;
 
                 out vec4 vColor; //Goes to pixelShader code
@@ -117,7 +123,7 @@ namespace OpenGL.App
                     float ny = aPosition.y / ViewportSize.y * 2f - 1f;
                     gl_Position = vec4(nx, ny, 0f, 1f);
 
-                    vColor = aColor;
+                    vColor = aColor * ColorFactor;
                 }
                 ";
 
@@ -135,46 +141,15 @@ namespace OpenGL.App
                 }
                 ";
 
-            int vertexShaderHandle = GL.CreateShader(ShaderType.VertexShader); //Grab vertex shader handle from gpu
-            GL.ShaderSource(vertexShaderHandle, vertexShaderCode); //Give it the shader code
-            GL.CompileShader(vertexShaderHandle); //Compile
+            this.shaderProgram = new ShaderProgram(vertexShaderCode, pixelShaderCode);
 
-            string vertexShaderInfo = GL.GetShaderInfoLog(vertexShaderHandle);
-            if (vertexShaderInfo != string.Empty)
-            {
-                Console.WriteLine(vertexShaderInfo);
-            }
 
-            int pixelShaderHandle = GL.CreateShader(ShaderType.FragmentShader);
-            GL.ShaderSource(pixelShaderHandle, pixelShaderCode);
-            GL.CompileShader(pixelShaderHandle);
-
-            string pixelShaderInfo = GL.GetShaderInfoLog(pixelShaderHandle);
-            if (pixelShaderInfo != string.Empty)
-            {
-                Console.WriteLine(pixelShaderInfo);
-            }
-
-            //Combine the shaders into a shader program
-            this.shaderProgramHandle =  GL.CreateProgram();
-            GL.AttachShader(shaderProgramHandle, vertexShaderHandle); //Attach shader to program
-            GL.AttachShader(shaderProgramHandle, pixelShaderHandle); //Attach shader to same program
-
-            GL.LinkProgram(shaderProgramHandle); //Link all shaders to program
-
-            //Get rid of shaders in RAM after giving shaders to GPU to keep
-            GL.DetachShader(this.shaderProgramHandle, vertexShaderHandle);
-            GL.DetachShader(this.shaderProgramHandle, pixelShaderHandle);
-            GL.DeleteShader(vertexShaderHandle);
-            GL.DeleteShader(pixelShaderHandle);
 
             int[] viewport = new int[4];
             GL.GetInteger(GetPName.Viewport, viewport); //Retrieve info from gpu
-            GL.UseProgram(this.shaderProgramHandle); //Tell open gl what program we going to send array to
-            int viewportSizeUniformLocation = GL.GetUniformLocation(this.shaderProgramHandle, "ViewportSize"); //Get the location on the shader code of the ViewportSize variable
-            GL.Uniform2(viewportSizeUniformLocation, (float)viewport[2], (float)viewport[3]); //Set the location variable on the shader code with the value from the array
-            GL.UseProgram(0); //Clear
 
+            this.shaderProgram.SetUniform("ViewportSize", (float)viewport[2], (float)viewport[3]);
+            this.shaderProgram.SetUniform("ColorFactor", colorFactor);
 
             base.OnLoad();
         }
@@ -185,14 +160,29 @@ namespace OpenGL.App
             this.vertexArray?.Dispose();
             this.indexBuffer?.Dispose();
             this.vertexBuffer?.Dispose();
-
-            GL.UseProgram(0);
-            GL.DeleteProgram(this.shaderProgramHandle);
+            this.shaderProgram?.Dispose();
+            
             base.OnUnload();
         }
 
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
+            this.colorFactor += this.deltaColorFactor;
+
+            if (this.colorFactor >= 1f)
+            {
+                this.colorFactor = 1f;
+                this.deltaColorFactor *= -1f;
+            }
+
+            if (this.colorFactor <= 0f)
+            {
+                this.colorFactor = 0f;
+                this.deltaColorFactor *= -1f;
+            }
+
+            this.shaderProgram.SetUniform("ColorFactor", this.colorFactor);
+
             base.OnUpdateFrame(args);
         }
 
@@ -200,7 +190,7 @@ namespace OpenGL.App
         {
             GL.Clear(ClearBufferMask.ColorBufferBit); //Clear color buffer
 
-            GL.UseProgram(this.shaderProgramHandle); //Use shader program
+            GL.UseProgram(this.shaderProgram.ShaderProgramHandle); //Use shader program
 
             GL.BindVertexArray(this.vertexArray.VertexArrayHandle); //Use vertex array handle to grab the vec3's variable
 

@@ -45,6 +45,11 @@ namespace OpenGL.App
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0); //Unbind
         }
 
+        ~IndexBuffer()
+        {
+            Dispose();
+        }
+
         public void Dispose()
         {
             if (this.disposed) return;

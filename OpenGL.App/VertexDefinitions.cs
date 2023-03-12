@@ -47,9 +47,9 @@ namespace OpenGL.App
     /// <summary>
     /// When we send the array of VertexPositionColor the graphics card just sees a large array of floats (6 floats per vertex) it doesn't see the surrounding struct.. just the base data or array of floats.
     /// </summary>
-    public readonly struct VertexPositionColor
+    public  struct VertexPositionColor
     {
-        public readonly Vector2 Position;
+        public  Vector2 Position;
         public readonly Color4 Color;
 
         public static readonly VertexInfo VertexInfo = 

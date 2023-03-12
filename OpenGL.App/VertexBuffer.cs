@@ -49,6 +49,7 @@ namespace OpenGL.App
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0); //Bind buffer to 0 to make sure it is done
         }
 
+        //This sets the data of the vertex handle, which means you can edit the data in real time to move stuff
         public void SetData<T>(T[] data, int count) where T : struct
         {
             if (typeof(T) != this.VertexInfo.Type)
