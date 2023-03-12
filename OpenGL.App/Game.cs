@@ -109,10 +109,10 @@ namespace OpenGL.App
                 @"
                 #version 330 core
 
-                uniform vec2 ViewportSize; //Uniforms variables that can be be pushed to gpu differently
+                uniform vec2 ViewportSize; //Uniforms variables that can be be pushed to gpu differently. uniform are per-primitive parameters (constant during an entire draw call) ;
                 uniform float ColorFactor; //0-1 
 
-                layout (location = 0) in vec2 aPosition; //attribute variables start with 'a'
+                layout (location = 0) in vec2 aPosition; //attribute variables start with 'a'. attribute are per-vertex parameters (typically : positions, normals, colors, UVs, ...) ;
                 layout (location = 1) in vec4 aColor;
 
                 out vec4 vColor; //Goes to pixelShader code
