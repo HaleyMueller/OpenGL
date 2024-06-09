@@ -41,11 +41,11 @@ namespace OpenGL.App
                 hint = BufferUsageHint.StreamDraw; //This will tell the buffer that the info we give it WILL change on the cpu at some point;
             }
 
-            int vertexSizeInBytes = VertexPositionColor.VertexInfo.SizeInBytes;
+            //int vertexSizeInBytes = VertexPositionColor.VertexInfo.SizeInBytes;
 
             this.VertexBufferHandle = GL.GenBuffer(); //Get next buffer
             GL.BindBuffer(BufferTarget.ArrayBuffer, this.VertexBufferHandle); //Tell it that this buffer is an array
-            GL.BufferData(BufferTarget.ArrayBuffer, this.VertexCount * this.VertexInfo.SizeInBytes, IntPtr.Zero, hint); //Put the data on the gpu through the buffer
+            GL.BufferData(BufferTarget.ArrayBuffer, this.VertexCount * this.VertexInfo.SizeInBytes, IntPtr.Zero, hint); //Se how many bytes the data will be on the gpu through the buffer
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0); //Bind buffer to 0 to make sure it is done
         }
 

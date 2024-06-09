@@ -57,13 +57,47 @@ namespace OpenGL.App
         (
             typeof(VertexPositionColor), 
             new VertexAttribute("Position", 0, 2, 0),
-            new VertexAttribute("Color", 1, 4, 2 * sizeof(float))
+            new VertexAttribute("Color", 2, 4, 4 * sizeof(float))
         );
 
         public VertexPositionColor(Vector2 position, Color4 color)
         {
             this.Position = position;
             this.Color = color;
+        }
+    }
+
+    public struct VertexPosition
+    {
+        public Vector2 Position;
+
+        public static readonly VertexInfo VertexInfo =
+        new VertexInfo
+        (
+            typeof(VertexPosition),
+            new VertexAttribute("Position", 0, 2, 0)
+        );
+
+        public VertexPosition(Vector2 position)
+        {
+            this.Position = position;
+        }
+    }
+
+    public struct VertexColor
+    {
+        public Color4 Color;
+
+        public static readonly VertexInfo VertexInfo =
+        new VertexInfo
+        (
+            typeof(VertexColor),
+            new VertexAttribute("Color", 2, 4, 0) //Offset is dependent on this list of attributes only. Not the total going into the VAO
+        );
+
+        public VertexColor(Color4 position)
+        {
+            this.Color = position;
         }
     }
 

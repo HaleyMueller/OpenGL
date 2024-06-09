@@ -56,14 +56,22 @@ namespace OpenGL.App
             int windowWidth = this.ClientSize.X;
             int windowHeight = this.ClientSize.Y;
 
-            Random rand = new Random();
+            Random rand = new Random();           
 
-            VertexPositionTextureColor[] vertices = new VertexPositionTextureColor[]
+            VertexPositionTexture[] vertices = new VertexPositionTexture[]
             {
-                new VertexPositionTextureColor(new Vector2(.5f, .5f), new Vector2(1, 1), new Color4(1f, 0f, 0f, 1f)),
-                new VertexPositionTextureColor(new Vector2(.5f, -.5f), new Vector2(1, 0), new Color4(0f, 1f, 0f, 1f)),
-                new VertexPositionTextureColor(new Vector2(-.5f, -.5f), new Vector2(0, 0), new Color4(0f, 0f, 1f, 1f)),
-                new VertexPositionTextureColor(new Vector2(-.5f, .5f), new Vector2(0, 1), new Color4(1f, 1f, 1f, 1f))
+                new VertexPositionTexture(new Vector2(.5f, .5f), new Vector2(1, 1)),
+                new VertexPositionTexture(new Vector2(.5f, -.5f), new Vector2(1, 0)),
+                new VertexPositionTexture(new Vector2(-.5f, -.5f), new Vector2(0, 0)),
+                new VertexPositionTexture(new Vector2(-.5f, .5f), new Vector2(0, 1))
+            };
+
+            VertexColor[] verticesColor = new VertexColor[]
+            {
+                new VertexColor(new Color4(1f, 0f, 0f, 1f)),
+                new VertexColor(new Color4(0f, 1f, 0f, 1f)),
+                new VertexColor(new Color4(0f, 0f, 1f, 1f)),
+                new VertexColor(new Color4(1f, 1f, 1f, 1f))
             };
 
             int[] indices = new int[]
@@ -71,15 +79,18 @@ namespace OpenGL.App
                 0, 1, 2, 0, 2, 3
             };
 
-
-            this.vertexBuffer = new VertexBuffer(VertexPositionTextureColor.VertexInfo, vertices.Length, true);
+            this.vertexBuffer = new VertexBuffer(VertexPositionTexture.VertexInfo, vertices.Length, true);
             this.vertexBuffer.SetData(vertices, vertices.Length);
+
+            var colorVertexBuffer = new VertexBuffer(VertexColor.VertexInfo, verticesColor.Length, true);
+            colorVertexBuffer.SetData(verticesColor, verticesColor.Length);
 
             this.indexBuffer = new IndexBuffer(indices.Length, true);
             this.indexBuffer.SetData(indices, indices.Length);
 
-            this.vertexArray = new VertexArray(this.vertexBuffer);
+            this.vertexArray = new VertexArray(new VertexBuffer[] { this.vertexBuffer, colorVertexBuffer });
 
+            //this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithTextureSlot.glsl");
             this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithColorAndTextureSlot.glsl");
 
             int[] viewport = new int[4];

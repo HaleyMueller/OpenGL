@@ -15,9 +15,9 @@ namespace OpenGL.App
         public bool disposed;
 
         public readonly int VertexArrayHandle;
-        public readonly VertexBuffer VertexBuffer;
+        public readonly VertexBuffer[] VertexBuffer;
 
-        public VertexArray(VertexBuffer vertexBuffer) 
+        public VertexArray(VertexBuffer[] vertexBuffer) 
         {
             this.disposed = false;
 
@@ -28,20 +28,23 @@ namespace OpenGL.App
 
             this.VertexBuffer = vertexBuffer;
 
-            int vertexSizeInBytes = this.VertexBuffer.VertexInfo.SizeInBytes;
-            VertexAttribute[] attributes = this.VertexBuffer.VertexInfo.VertexAttributes;
-
             this.VertexArrayHandle = GL.GenVertexArray();
             GL.BindVertexArray(this.VertexArrayHandle);
 
-            //These 3 lines are going into the BindVertexArray and saving it
-            GL.BindBuffer(BufferTarget.ArrayBuffer, this.VertexBuffer.VertexBufferHandle); //Grab the array that we saved into gpu from the load
-
-            for (int i = 0; i < attributes.Length; i++)
+            foreach (var vbo in vertexBuffer)
             {
-                var attribute = attributes[i];
-                GL.VertexAttribPointer(attribute.Index, attribute.ComponentCount, VertexAttribPointerType.Float, false, vertexSizeInBytes, attribute.Offset); //Fill in the value from vertexShaderCode by location id. Also how to define each byte segment from the array
-                GL.EnableVertexAttribArray(attribute.Index); //Enable that variable location id on the shader
+                int vertexSizeInBytes = vbo.VertexInfo.SizeInBytes;
+                VertexAttribute[] attributes = vbo.VertexInfo.VertexAttributes;
+
+                //These 3 lines are going into the BindVertexArray and saving it
+                GL.BindBuffer(BufferTarget.ArrayBuffer, vbo.VertexBufferHandle); //Grab the array that we saved into gpu from the load
+
+                for (int i = 0; i < attributes.Length; i++)
+                {
+                    var attribute = attributes[i];
+                    GL.VertexAttribPointer(attribute.Index, attribute.ComponentCount, VertexAttribPointerType.Float, false, vertexSizeInBytes, attribute.Offset); //Fill in the value from vertexShaderCode by location id. Also how to define each byte segment from the array
+                    GL.EnableVertexAttribArray(attribute.Index); //Enable that variable location id on the shader
+                }
             }
 
             GL.BindVertexArray(0);
