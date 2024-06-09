@@ -18,6 +18,7 @@ namespace OpenGL.App
     public class Game : GameWindow
     {
         private VertexBuffer vertexBuffer; //Reference to Vertices that will be on the gpu
+        private VertexBuffer vertexColorBuffer; //Reference to Vertices that will be on the gpu
         private IndexBuffer indexBuffer;
         private ShaderProgram shaderProgram;
         private VertexArray vertexArray;
@@ -82,13 +83,13 @@ namespace OpenGL.App
             this.vertexBuffer = new VertexBuffer(VertexPositionTexture.VertexInfo, vertices.Length, true);
             this.vertexBuffer.SetData(vertices, vertices.Length);
 
-            var colorVertexBuffer = new VertexBuffer(VertexColor.VertexInfo, verticesColor.Length, true);
-            colorVertexBuffer.SetData(verticesColor, verticesColor.Length);
+            this.vertexColorBuffer = new VertexBuffer(VertexColor.VertexInfo, verticesColor.Length, false);
+            this.vertexColorBuffer.SetData(verticesColor, verticesColor.Length);
 
             this.indexBuffer = new IndexBuffer(indices.Length, true);
             this.indexBuffer.SetData(indices, indices.Length);
 
-            this.vertexArray = new VertexArray(new VertexBuffer[] { this.vertexBuffer, colorVertexBuffer });
+            this.vertexArray = new VertexArray(new VertexBuffer[] { this.vertexBuffer, this.vertexColorBuffer });
 
             //this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithTextureSlot.glsl");
             this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithColorAndTextureSlot.glsl");
@@ -114,61 +115,88 @@ namespace OpenGL.App
             this.vertexArray?.Dispose();
             this.indexBuffer?.Dispose();
             this.vertexBuffer?.Dispose();
+            this.vertexColorBuffer?.Dispose();
             this.shaderProgram?.Dispose();
             
             base.OnUnload();
         }
 
         public Color4 color4 = new Color4(1f, 0f, 0f, 1f);
+        public float colorFactor = 1f;
         public Vector2 testPos = new Vector2(.5f, .5f);
         public bool flipColor = false;
 
+        VertexColor[] verticesColor = new VertexColor[]
+{
+                            new VertexColor(new Color4(1f, 0f, 0f, 1f)),
+                            new VertexColor(new Color4(0f, 1f, 0f, 1f)),
+                            new VertexColor(new Color4(0f, 0f, 1f, 1f)),
+                            new VertexColor(new Color4(1f, 1f, 1f, 1f))
+};
+
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
+            if (colorFactor >= 1f)
+            {
+                Console.WriteLine("unflipping");
+                flipColor = false;
+            }
+            else if (colorFactor <= 0f)
+            {
+                Console.WriteLine("flipping");
+                flipColor = true;
+            }
 
+            if (flipColor)
+            {
+                colorFactor += (float)(0.4f * args.Time);
+            }
+            else
+            {
+                colorFactor -= (float)(0.4f * args.Time);
+            }
 
-            //this.colorFactor += this.deltaColorFactor;
+            Console.WriteLine($"ColorFactor:{colorFactor}");
 
-            //if (this.colorFactor >= 1f)
-            //{
-            //    this.colorFactor = 1f;
-            //    this.deltaColorFactor *= -1f;
-            //}
+            //this.shaderProgram.SetUniform("colorFactor", color4.R, color4.G);
 
-            //if (this.colorFactor <= 0f)
-            //{
-            //    this.colorFactor = 0f;
-            //    this.deltaColorFactor *= -1f;
-            //}
+            var copiedVertColor = new VertexColor[verticesColor.Length];
+            Array.Copy(verticesColor, copiedVertColor, verticesColor.Length);
 
+            for (int i = 0; i < copiedVertColor.Length; i++)
+            {
+                copiedVertColor[i].Color.R *= colorFactor;
+                copiedVertColor[i].Color.G *= colorFactor;
+                copiedVertColor[i].Color.B *= colorFactor;
+            }
 
-            //if (color4.R >= 1f)
-            //    flipColor = false;
-            //else if (color4.R <= 0f)
-            //    flipColor = true;
-
-            //if (flipColor)
-            //{
-            //    color4.R += (float)(0.3f * args.Time);
-            //    testPos.X += (float)(0.3f * args.Time);
-            //}
-            //else
-            //{
-            //    color4.R -= (float)(0.3f * args.Time);
-            //    testPos.X -= (float)(0.3f * args.Time);
-            //}
-
-            //Console.WriteLine($"color4: r {color4.R} g {color4.G} b {color4.B} a {color4.A}");
-
-            ////this.shaderProgram.SetUniform("colorFactor", color4.R, color4.G);
-            ////this.shaderProgram.SetUniform("colorFactor", color4.R, color4.G, color4.B, color4.A);
-            //this.shaderProgram.SetAttribute("aPosition", testPos.X, testPos.Y);
+            this.vertexColorBuffer.SetData(copiedVertColor, copiedVertColor.Length);
 
             base.OnUpdateFrame(args);
         }
 
+        List<long> timeSpans = new List<long>();
+        TimeSpan limit = new TimeSpan(0, 0, 5);
+        int framesDuringLimit = 0;
+
         protected override void OnRenderFrame(FrameEventArgs args)
         {
+            timeSpans.Add(DateTime.Now.Ticks);
+
+            for (int i = timeSpans.Count-1; i >= 0; i--)
+            {
+                long tick = timeSpans[i];
+
+                if (TimeSpan.FromTicks(tick).Add(limit).Ticks <= DateTime.Now.Ticks)
+                {
+                    timeSpans.Remove(timeSpans.ElementAt(i));
+                }
+            }
+
+            framesDuringLimit = (int)(timeSpans.Count() / limit.TotalSeconds);
+
+            this.Title = framesDuringLimit.ToString();
+
             GL.Clear(ClearBufferMask.ColorBufferBit); //Clear color buffer
 
             GL.UseProgram(this.shaderProgram.ShaderProgramHandle); //Use shader program

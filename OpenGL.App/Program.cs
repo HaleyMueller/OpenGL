@@ -16,6 +16,7 @@ namespace OpenGL.App
         {
             using (Game game = new Game())
             {
+                //game.VSync = OpenTK.Windowing.Common.VSyncMode.Adaptive;
                 game.Run();
             }
         }
