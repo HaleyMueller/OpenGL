@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 using SharpFont.PostScript;
 
 namespace OpenGL.App
@@ -84,6 +85,7 @@ namespace OpenGL.App
             return result;
         }
 
+
         public void SetUniform(string name, float v1)
         {
             if (GetShaderUniform(name, out ShaderUniform uniform) == false)
@@ -115,6 +117,40 @@ namespace OpenGL.App
 
             GL.UseProgram(this.ShaderProgramHandle); //Tell open gl what program we going to send array to
             GL.Uniform2(uniform.Location, v1, v2); //Set the location variable on the shader code with the value
+            GL.UseProgram(0); //Clear
+        }
+
+        public void SetUniform(string name, float v1, float v2, float v3)
+        {
+            if (GetShaderUniform(name, out ShaderUniform uniform) == false)
+            {
+                throw new ArgumentException($"Shader uniform name was not found {name}");
+            }
+
+            if (uniform.Type != ActiveUniformType.FloatVec3)
+            {
+                throw new ArgumentException("Shader uniform type is not float vec 2");
+            }
+
+            GL.UseProgram(this.ShaderProgramHandle); //Tell open gl what program we going to send array to
+            GL.Uniform3(uniform.Location, v1, v2, v3); //Set the location variable on the shader code with the value
+            GL.UseProgram(0); //Clear
+        }
+
+        public void SetUniform(string name, float v1, float v2, float v3, float v4)
+        {
+            if (GetShaderUniform(name, out ShaderUniform uniform) == false)
+            {
+                throw new ArgumentException($"Shader uniform name was not found {name}");
+            }
+
+            if (uniform.Type != ActiveUniformType.FloatVec4)
+            {
+                throw new ArgumentException("Shader uniform type is not float vec 2");
+            }
+
+            GL.UseProgram(this.ShaderProgramHandle); //Tell open gl what program we going to send array to
+            GL.Uniform4(uniform.Location, v1, v2, v3, v4); //Set the location variable on the shader code with the value
             GL.UseProgram(0); //Clear
         }
 
@@ -215,7 +251,7 @@ namespace OpenGL.App
             for (int i = 0; i < attributeCount; i++)
             {
                 GL.GetActiveAttrib(shaderProgramHandle, i, 256, out _, out _, out ActiveAttribType type, out string name);
-                int locationID = GL.GetUniformLocation(shaderProgramHandle, name);
+                int locationID = GL.GetAttribLocation(shaderProgramHandle, name);
                 attributes[i] = new ShaderAttribute(name, locationID, type);
             }
 

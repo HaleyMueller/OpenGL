@@ -80,13 +80,13 @@ namespace OpenGL.App
 
             this.vertexArray = new VertexArray(this.vertexBuffer);
 
-            this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithColor.glsl");
+            this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithColorAndTextureSlot.glsl");
 
             int[] viewport = new int[4];
             GL.GetInteger(GetPName.Viewport, viewport); //Retrieve info from gpu
 
             _texture = ResourceManager.Instance.LoadTexture("C:\\tmp\\test.png");
-            _texture.Use();
+            //_texture.Use();
 
             //this.shaderProgram.SetUniform("texCoord", _texture.Handle);
 
@@ -108,8 +108,14 @@ namespace OpenGL.App
             base.OnUnload();
         }
 
+        public Color4 color4 = new Color4(1f, 0f, 0f, 1f);
+        public Vector2 testPos = new Vector2(.5f, .5f);
+        public bool flipColor = false;
+
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
+
+
             //this.colorFactor += this.deltaColorFactor;
 
             //if (this.colorFactor >= 1f)
@@ -124,7 +130,28 @@ namespace OpenGL.App
             //    this.deltaColorFactor *= -1f;
             //}
 
-            //this.shaderProgram.SetUniform("ColorFactor", this.colorFactor);
+
+            //if (color4.R >= 1f)
+            //    flipColor = false;
+            //else if (color4.R <= 0f)
+            //    flipColor = true;
+
+            //if (flipColor)
+            //{
+            //    color4.R += (float)(0.3f * args.Time);
+            //    testPos.X += (float)(0.3f * args.Time);
+            //}
+            //else
+            //{
+            //    color4.R -= (float)(0.3f * args.Time);
+            //    testPos.X -= (float)(0.3f * args.Time);
+            //}
+
+            //Console.WriteLine($"color4: r {color4.R} g {color4.G} b {color4.B} a {color4.A}");
+
+            ////this.shaderProgram.SetUniform("colorFactor", color4.R, color4.G);
+            ////this.shaderProgram.SetUniform("colorFactor", color4.R, color4.G, color4.B, color4.A);
+            //this.shaderProgram.SetAttribute("aPosition", testPos.X, testPos.Y);
 
             base.OnUpdateFrame(args);
         }
