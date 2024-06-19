@@ -48,6 +48,8 @@ namespace OpenGL.App
             base.OnResize(e);
         }
 
+        bool showImage = false;
+
         protected override void OnLoad()
         {
             this.IsVisible = true;
@@ -57,47 +59,49 @@ namespace OpenGL.App
             int windowWidth = this.ClientSize.X;
             int windowHeight = this.ClientSize.Y;
 
-            Random rand = new Random();           
-
-            VertexPositionTexture[] vertices = new VertexPositionTexture[]
+            if (showImage)
             {
+
+                VertexPositionTexture[] vertices = new VertexPositionTexture[]
+                {
                 new VertexPositionTexture(new Vector2(.5f, .5f), new Vector2(1, 1)),
                 new VertexPositionTexture(new Vector2(.5f, -.5f), new Vector2(1, 0)),
                 new VertexPositionTexture(new Vector2(-.5f, -.5f), new Vector2(0, 0)),
                 new VertexPositionTexture(new Vector2(-.5f, .5f), new Vector2(0, 1))
-            };
+                };
 
-            VertexColor[] verticesColor = new VertexColor[]
-            {
+                VertexColor[] verticesColor = new VertexColor[]
+                {
                 new VertexColor(new Color4(1f, 0f, 0f, 1f)),
                 new VertexColor(new Color4(0f, 1f, 0f, 1f)),
                 new VertexColor(new Color4(0f, 0f, 1f, 1f)),
                 new VertexColor(new Color4(1f, 1f, 1f, 1f))
-            };
+                };
 
-            int[] indices = new int[]
-            {
+                int[] indices = new int[]
+                {
                 0, 1, 2, 0, 2, 3
-            };
+                };
 
-            this.vertexBuffer = new VertexBuffer(VertexPositionTexture.VertexInfo, vertices.Length, true);
-            this.vertexBuffer.SetData(vertices, vertices.Length);
+                this.vertexBuffer = new VertexBuffer(VertexPositionTexture.VertexInfo, vertices.Length, true);
+                this.vertexBuffer.SetData(vertices, vertices.Length);
 
-            this.vertexColorBuffer = new VertexBuffer(VertexColor.VertexInfo, verticesColor.Length, false);
-            this.vertexColorBuffer.SetData(verticesColor, verticesColor.Length);
+                this.vertexColorBuffer = new VertexBuffer(VertexColor.VertexInfo, verticesColor.Length, false);
+                this.vertexColorBuffer.SetData(verticesColor, verticesColor.Length);
 
-            this.indexBuffer = new IndexBuffer(indices.Length, true);
-            this.indexBuffer.SetData(indices, indices.Length);
+                this.indexBuffer = new IndexBuffer(indices.Length, true);
+                this.indexBuffer.SetData(indices, indices.Length);
 
-            this.vertexArray = new VertexArray(new VertexBuffer[] { this.vertexBuffer, this.vertexColorBuffer });
+                this.vertexArray = new VertexArray(new VertexBuffer[] { this.vertexBuffer, this.vertexColorBuffer });
 
-            //this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithTextureSlot.glsl");
-            this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithColorAndTextureSlot.glsl");
+                //this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithTextureSlot.glsl");
+                this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithColorAndTextureSlot.glsl");
 
-            int[] viewport = new int[4];
-            GL.GetInteger(GetPName.Viewport, viewport); //Retrieve info from gpu
+                //int[] viewport = new int[4];
+                //GL.GetInteger(GetPName.Viewport, viewport); //Retrieve info from gpu
 
-            _texture = ResourceManager.Instance.LoadTexture("C:\\tmp\\test.png");
+                _texture = ResourceManager.Instance.LoadTexture("C:\\tmp\\test.png");
+            }
             //_texture.Use();
 
             //this.shaderProgram.SetUniform("texCoord", _texture.Handle);
@@ -136,41 +140,44 @@ namespace OpenGL.App
 
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
-            if (colorFactor >= 1f)
+            if (showImage)
             {
-                Console.WriteLine("unflipping");
-                flipColor = false;
+                if (colorFactor >= 1f)
+                {
+                    Console.WriteLine("unflipping");
+                    flipColor = false;
+                }
+                else if (colorFactor <= 0f)
+                {
+                    Console.WriteLine("flipping");
+                    flipColor = true;
+                }
+
+                if (flipColor)
+                {
+                    colorFactor += (float)(0.4f * args.Time);
+                }
+                else
+                {
+                    colorFactor -= (float)(0.4f * args.Time);
+                }
+
+                Console.WriteLine($"ColorFactor:{colorFactor}");
+
+                //this.shaderProgram.SetUniform("colorFactor", color4.R, color4.G);
+
+                var copiedVertColor = new VertexColor[verticesColor.Length];
+                Array.Copy(verticesColor, copiedVertColor, verticesColor.Length);
+
+                for (int i = 0; i < copiedVertColor.Length; i++)
+                {
+                    copiedVertColor[i].Color.R *= colorFactor;
+                    copiedVertColor[i].Color.G *= colorFactor;
+                    copiedVertColor[i].Color.B *= colorFactor;
+                }
+
+                this.vertexColorBuffer.SetData(copiedVertColor, copiedVertColor.Length);
             }
-            else if (colorFactor <= 0f)
-            {
-                Console.WriteLine("flipping");
-                flipColor = true;
-            }
-
-            if (flipColor)
-            {
-                colorFactor += (float)(0.4f * args.Time);
-            }
-            else
-            {
-                colorFactor -= (float)(0.4f * args.Time);
-            }
-
-            Console.WriteLine($"ColorFactor:{colorFactor}");
-
-            //this.shaderProgram.SetUniform("colorFactor", color4.R, color4.G);
-
-            var copiedVertColor = new VertexColor[verticesColor.Length];
-            Array.Copy(verticesColor, copiedVertColor, verticesColor.Length);
-
-            for (int i = 0; i < copiedVertColor.Length; i++)
-            {
-                copiedVertColor[i].Color.R *= colorFactor;
-                copiedVertColor[i].Color.G *= colorFactor;
-                copiedVertColor[i].Color.B *= colorFactor;
-            }
-
-            this.vertexColorBuffer.SetData(copiedVertColor, copiedVertColor.Length);
 
             base.OnUpdateFrame(args);
         }
@@ -181,6 +188,7 @@ namespace OpenGL.App
 
         protected override void OnRenderFrame(FrameEventArgs args)
         {
+            #region FPS
             timeSpans.Add(DateTime.Now.Ticks);
 
             for (int i = timeSpans.Count-1; i >= 0; i--)
@@ -196,16 +204,20 @@ namespace OpenGL.App
             framesDuringLimit = (int)(timeSpans.Count() / limit.TotalSeconds);
 
             this.Title = framesDuringLimit.ToString();
+            #endregion
 
             GL.Clear(ClearBufferMask.ColorBufferBit); //Clear color buffer
 
-            GL.UseProgram(this.shaderProgram.ShaderProgramHandle); //Use shader program
+            if (showImage)
+            {
+                GL.UseProgram(this.shaderProgram.ShaderProgramHandle); //Use shader program
 
-            GL.BindVertexArray(this.vertexArray.VertexArrayHandle); //Use vertex array handle to grab the vec3's variable
+                GL.BindVertexArray(this.vertexArray.VertexArrayHandle); //Use vertex array handle to grab the vec3's variable
 
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.indexBuffer.IndexBufferHandle); //Use indices array linked to vertex array above
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.indexBuffer.IndexBufferHandle); //Use indices array linked to vertex array above
 
-            GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0); //Tell it to draw with the indices array
+                GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0); //Tell it to draw with the indices array
+            }
 
             //GL.DrawArrays(PrimitiveType.Triangles, 0, 3); //Draw call to setup triangle on GPU //THIS IS ONLY FOR DIRECT COORDS
 
