@@ -70,6 +70,11 @@ namespace OpenGL.App
             this.Attributes = CreateAttributeList(this.ShaderProgramHandle);
         }
 
+        public void Use()
+        {
+            GL.UseProgram(ShaderProgramHandle);
+        }
+
         #region OpenGL
         public ShaderUniform[] GetUniformList()
         {

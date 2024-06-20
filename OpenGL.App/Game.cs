@@ -25,6 +25,9 @@ namespace OpenGL.App
 
         private Texture2D _texture;
 
+        private ShaderProgram _fontShaderProgram;
+        private FreeTypeFont _font;
+
         public Game(int width = 1280, int height = 768) : base(
             GameWindowSettings.Default, 
             new NativeWindowSettings()
@@ -97,11 +100,18 @@ namespace OpenGL.App
                 //this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithTextureSlot.glsl");
                 this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithColorAndTextureSlot.glsl");
 
+                
+
                 //int[] viewport = new int[4];
                 //GL.GetInteger(GetPName.Viewport, viewport); //Retrieve info from gpu
 
                 _texture = ResourceManager.Instance.LoadTexture("C:\\tmp\\test.png");
             }
+
+
+            this._fontShaderProgram = new ShaderProgram("Resources/Shaders/TextShader.glsl");
+
+            _font = new FreeTypeFont();
             //_texture.Use();
 
             //this.shaderProgram.SetUniform("texCoord", _texture.Handle);
@@ -131,12 +141,12 @@ namespace OpenGL.App
         public bool flipColor = false;
 
         VertexColor[] verticesColor = new VertexColor[]
-{
-                            new VertexColor(new Color4(1f, 0f, 0f, 1f)),
-                            new VertexColor(new Color4(0f, 1f, 0f, 1f)),
-                            new VertexColor(new Color4(0f, 0f, 1f, 1f)),
-                            new VertexColor(new Color4(1f, 1f, 1f, 1f))
-};
+        {
+            new VertexColor(new Color4(1f, 0f, 0f, 1f)),
+            new VertexColor(new Color4(0f, 1f, 0f, 1f)),
+            new VertexColor(new Color4(0f, 0f, 1f, 1f)),
+            new VertexColor(new Color4(1f, 1f, 1f, 1f))
+        };
 
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
@@ -218,6 +228,9 @@ namespace OpenGL.App
 
                 GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0); //Tell it to draw with the indices array
             }
+
+            GL.UseProgram(this._fontShaderProgram.ShaderProgramHandle);
+            _font.RenderText(this._fontShaderProgram, "Hello, world", .5f, .5f, .5f, new Vector3(1f, .8f, 1f));
 
             //GL.DrawArrays(PrimitiveType.Triangles, 0, 3); //Draw call to setup triangle on GPU //THIS IS ONLY FOR DIRECT COORDS
 
