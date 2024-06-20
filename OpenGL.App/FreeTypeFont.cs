@@ -80,7 +80,7 @@ namespace OpenGL.App
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-            var projection = Matrix4.CreateOrthographic(0.0f, 800.0f, 0.0f, 600.0f);
+            
 
             _vao = GL.GenVertexArray();
             _vbo = GL.GenBuffer();
@@ -115,10 +115,15 @@ namespace OpenGL.App
             return bitmap;
         }
 
-        public void RenderText(ShaderProgram shaderProgram, string text, float x, float y, float scale, Vector3 color)
+        public void RenderText(ShaderProgram shaderProgram, int screenX, int screenY, string text, float x, float y, float scale, Vector3 color)
         {
+            Matrix4 projectionM = Matrix4.CreateOrthographicOffCenter(0.0f, screenX, screenY, 0.0f, -1.0f, 1.0f);
+
+            //var projection = Matrix4.CreateOrthographic(0.0f, 1280.0f, 0.0f, 768.0f);
+
             //shaderProgram.Use();
             GL.Uniform3(shaderProgram.GetUniformList().FirstOrDefault(x => x.Name == "textColor").Location, color.X, color.Y, color.Z);
+            GL.UniformMatrix4(shaderProgram.GetUniformList().FirstOrDefault(x => x.Name == "projection").Location, false, ref projectionM);
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindVertexArray(_vao);
 
@@ -136,27 +141,28 @@ namespace OpenGL.App
                 float h = ch.Size.Y * scale;
 
                 // update VBO for each character
-                //float[,] vertices = new float[6,4]{
-                //    { xpos,     ypos + h,   0.0f, 0.0f },            
-                //    { xpos,     ypos,       0.0f, 1.0f },
-                //    { xpos + w, ypos,       1.0f, 1.0f },
+                float[,] vertices = new float[6, 4]{
+                    { xpos,     ypos - h,   0.0f, 0.0f },
+                    { xpos,     ypos,       0.0f, 1.0f },
+                    { xpos + w, ypos,       1.0f, 1.0f },
 
-                //    { xpos,     ypos + h,   0.0f, 0.0f },
-                //    { xpos + w, ypos,       1.0f, 1.0f },
-                //    { xpos + w, ypos + h,   1.0f, 0.0f }
-                //};
-
-                float[,] vertices = new float[6,4]
-                {  
-                    { 0.0f, -1.0f,   0.0f, 0.0f},
-                    { 0.0f,  0.0f,   0.0f, 1.0f},
-                    { 1.0f,  0.0f,   1.0f, 1.0f},
-                    { 0.0f, -1.0f,   0.0f, 0.0f},
-                    { 1.0f,  0.0f,   1.0f, 1.0f},
-                    { 1.0f, -1.0f,   1.0f, 0.0f}
+                    { xpos,     ypos - h,   0.0f, 0.0f },
+                    { xpos + w, ypos,       1.0f, 1.0f },
+                    { xpos + w, ypos - h,   1.0f, 0.0f }
                 };
 
+                //float[,] vertices = new float[6,4]
+                //{  
+                //    { 0.0f, -1.0f,   0.0f, 0.0f},
+                //    { 0.0f,  0.0f,   0.0f, 1.0f},
+                //    { 1.0f,  0.0f,   1.0f, 1.0f},
+                //    { 0.0f, -1.0f,   0.0f, 0.0f},
+                //    { 1.0f,  0.0f,   1.0f, 1.0f},
+                //    { 1.0f, -1.0f,   1.0f, 0.0f}
+                //};
+
                 GL.BindTexture(TextureTarget.Texture2D, ch.TextureID);
+                //GL.GenerateTextureMipmap(ch.TextureID);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
                 GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, (sizeof(float) * 4 * 6), vertices);
 

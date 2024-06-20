@@ -32,7 +32,7 @@ namespace OpenGL.App
             GameWindowSettings.Default, 
             new NativeWindowSettings()
             {
-                Title = "Hamburger and/or cheeseburger",
+                Title = "Title",
                 Size = new Vector2i(width, height),
                 WindowBorder = WindowBorder.Fixed,
                 StartVisible = true,
@@ -212,8 +212,6 @@ namespace OpenGL.App
             }
 
             framesDuringLimit = (int)(timeSpans.Count() / limit.TotalSeconds);
-
-            this.Title = framesDuringLimit.ToString();
             #endregion
 
             GL.Clear(ClearBufferMask.ColorBufferBit); //Clear color buffer
@@ -221,7 +219,7 @@ namespace OpenGL.App
             if (showImage)
             {
                 GL.UseProgram(this.shaderProgram.ShaderProgramHandle); //Use shader program
-
+                _texture.Use();
                 GL.BindVertexArray(this.vertexArray.VertexArrayHandle); //Use vertex array handle to grab the vec3's variable
 
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.indexBuffer.IndexBufferHandle); //Use indices array linked to vertex array above
@@ -230,7 +228,8 @@ namespace OpenGL.App
             }
 
             GL.UseProgram(this._fontShaderProgram.ShaderProgramHandle);
-            _font.RenderText(this._fontShaderProgram, "Hello, world", .5f, .5f, .5f, new Vector3(1f, .8f, 1f));
+            _font.RenderText(this._fontShaderProgram, this.Size.X, this.Size.Y, $"FPS: {framesDuringLimit}", .5f, 12f, .25f, new Vector3(1f, .8f, 1f));
+            _font.RenderText(this._fontShaderProgram, this.Size.X, this.Size.Y, "this is a test", this.Size.X/2, this.Size.Y / 2, 1f, new Vector3(.1f, .8f, .1f));
 
             //GL.DrawArrays(PrimitiveType.Triangles, 0, 3); //Draw call to setup triangle on GPU //THIS IS ONLY FOR DIRECT COORDS
 
