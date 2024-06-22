@@ -17,16 +17,10 @@ namespace OpenGL.App
 {
     public class Game : GameWindow
     {
-        private VertexBuffer vertexBuffer; //Reference to Vertices that will be on the gpu
-        private VertexBuffer vertexColorBuffer; //Reference to Vertices that will be on the gpu
-        private IndexBuffer indexBuffer;
-        private ShaderProgram shaderProgram;
-        private VertexArray vertexArray;
-
-        private Texture2D _texture;
-
         private ShaderProgram _fontShaderProgram;
         private FreeTypeFont _font;
+
+        private GameObject _gameObject;
 
         public Game(int width = 1280, int height = 768) : base(
             GameWindowSettings.Default, 
@@ -51,7 +45,7 @@ namespace OpenGL.App
             base.OnResize(e);
         }
 
-        bool showImage = false;
+        bool rainbowImage = true;
 
         protected override void OnLoad()
         {
@@ -62,10 +56,7 @@ namespace OpenGL.App
             int windowWidth = this.ClientSize.X;
             int windowHeight = this.ClientSize.Y;
 
-            if (showImage)
-            {
-
-                VertexPositionTexture[] vertices = new VertexPositionTexture[]
+            VertexPositionTexture[] vertices = new VertexPositionTexture[]
                 {
                 new VertexPositionTexture(new Vector2(.5f, .5f), new Vector2(1, 1)),
                 new VertexPositionTexture(new Vector2(.5f, -.5f), new Vector2(1, 0)),
@@ -73,52 +64,34 @@ namespace OpenGL.App
                 new VertexPositionTexture(new Vector2(-.5f, .5f), new Vector2(0, 1))
                 };
 
-                VertexColor[] verticesColor = new VertexColor[]
-                {
+            VertexColor[] verticesColor = new VertexColor[]
+            {
                 new VertexColor(new Color4(1f, 0f, 0f, 1f)),
                 new VertexColor(new Color4(0f, 1f, 0f, 1f)),
                 new VertexColor(new Color4(0f, 0f, 1f, 1f)),
                 new VertexColor(new Color4(1f, 1f, 1f, 1f))
-                };
+            };
 
-                int[] indices = new int[]
-                {
+            int[] indices = new int[]
+            {
                 0, 1, 2, 0, 2, 3
-                };
+            };
 
-                this.vertexBuffer = new VertexBuffer(VertexPositionTexture.VertexInfo, vertices.Length, true);
-                this.vertexBuffer.SetData(vertices, vertices.Length);
+            var vertexBuffer = new VertexBuffer(VertexPositionTexture.VertexInfo, vertices.Length, true);
+            vertexBuffer.SetData(vertices, vertices.Length);
 
-                this.vertexColorBuffer = new VertexBuffer(VertexColor.VertexInfo, verticesColor.Length, false);
-                this.vertexColorBuffer.SetData(verticesColor, verticesColor.Length);
+            var vertexColorBuffer = new VertexBuffer(VertexColor.VertexInfo, verticesColor.Length, false);
+            vertexColorBuffer.SetData(verticesColor, verticesColor.Length);
 
-                this.indexBuffer = new IndexBuffer(indices.Length, true);
-                this.indexBuffer.SetData(indices, indices.Length);
+            var _texture = ResourceManager.Instance.LoadTexture("C:\\tmp\\test.png");
 
-                this.vertexArray = new VertexArray(new VertexBuffer[] { this.vertexBuffer, this.vertexColorBuffer });
+            _gameObject = new GameObject(new System.Numerics.Vector3(0.5f, 0.4f, 0.5f), GameObject.ProjectionTypeEnum.Orthographic, "Resources/Shaders/TextureWithColorAndTextureSlot.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
 
-                //this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithTextureSlot.glsl");
-                this.shaderProgram = new ShaderProgram("Resources/Shaders/TextureWithColorAndTextureSlot.glsl");
-
-                
-
-                //int[] viewport = new int[4];
-                //GL.GetInteger(GetPName.Viewport, viewport); //Retrieve info from gpu
-
-                _texture = ResourceManager.Instance.LoadTexture("C:\\tmp\\test.png");
-            }
 
 
             this._fontShaderProgram = new ShaderProgram("Resources/Shaders/TextShader.glsl");
 
             _font = new FreeTypeFont();
-            //_texture.Use();
-
-            //this.shaderProgram.SetUniform("texCoord", _texture.Handle);
-
-
-            //this.shaderProgram.SetUniform("ViewportSize", (float)viewport[2], (float)viewport[3]);
-            //this.shaderProgram.SetUniform("ColorFactor", colorFactor);
 
             base.OnLoad();
         }
@@ -126,12 +99,8 @@ namespace OpenGL.App
         protected override void OnUnload()
         {
             //Removing everything
-            this.vertexArray?.Dispose();
-            this.indexBuffer?.Dispose();
-            this.vertexBuffer?.Dispose();
-            this.vertexColorBuffer?.Dispose();
-            this.shaderProgram?.Dispose();
-            
+            _gameObject.Dispose();
+
             base.OnUnload();
         }
 
@@ -150,7 +119,7 @@ namespace OpenGL.App
 
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
-            if (showImage)
+            if (rainbowImage)
             {
                 if (colorFactor >= 1f)
                 {
@@ -186,7 +155,7 @@ namespace OpenGL.App
                     copiedVertColor[i].Color.B *= colorFactor;
                 }
 
-                this.vertexColorBuffer.SetData(copiedVertColor, copiedVertColor.Length);
+                this._gameObject.VertexArray.VertexBuffer[1].SetData(copiedVertColor, copiedVertColor.Length);
             }
 
             base.OnUpdateFrame(args);
@@ -216,16 +185,7 @@ namespace OpenGL.App
 
             GL.Clear(ClearBufferMask.ColorBufferBit); //Clear color buffer
 
-            if (showImage)
-            {
-                GL.UseProgram(this.shaderProgram.ShaderProgramHandle); //Use shader program
-                _texture.Use();
-                GL.BindVertexArray(this.vertexArray.VertexArrayHandle); //Use vertex array handle to grab the vec3's variable
-
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.indexBuffer.IndexBufferHandle); //Use indices array linked to vertex array above
-
-                GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0); //Tell it to draw with the indices array
-            }
+            _gameObject.GPU_Use();
 
             GL.UseProgram(this._fontShaderProgram.ShaderProgramHandle);
             _font.RenderText(this._fontShaderProgram, this.Size.X, this.Size.Y, $"FPS: {framesDuringLimit}", .5f, 12f, .25f, new Vector3(1f, .8f, 1f));

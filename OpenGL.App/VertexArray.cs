@@ -59,6 +59,11 @@ namespace OpenGL.App
         {
             if (this.disposed) return;
 
+            foreach (var vbo in this.VertexBuffer)
+            {
+                vbo.Dispose();
+            }
+
             GL.BindVertexArray(0);
             GL.DeleteVertexArray(this.VertexArrayHandle);
 

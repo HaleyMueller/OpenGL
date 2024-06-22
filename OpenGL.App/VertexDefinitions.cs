@@ -84,7 +84,12 @@ namespace OpenGL.App
         }
     }
 
-    public struct VertexColor
+    public interface  test
+    {
+
+    }
+
+    public struct VertexColor : test
     {
         public Color4 Color;
 
