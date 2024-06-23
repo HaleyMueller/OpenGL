@@ -20,7 +20,7 @@ namespace OpenGL.App
         private ShaderProgram _fontShaderProgram;
         private FreeTypeFont _font;
 
-        private GameObject _gameObject;
+        private PlaneWithImage _gameObject;
 
         public Game(int width = 1280, int height = 768) : base(
             GameWindowSettings.Default, 
@@ -45,7 +45,7 @@ namespace OpenGL.App
             base.OnResize(e);
         }
 
-        bool rainbowImage = true;
+        bool rainbowImage = false;
 
         protected override void OnLoad()
         {
@@ -85,7 +85,7 @@ namespace OpenGL.App
 
             var _texture = ResourceManager.Instance.LoadTexture("C:\\tmp\\test.png");
 
-            _gameObject = new GameObject(new System.Numerics.Vector3(0.5f, 0.4f, 0.5f), GameObject.ProjectionTypeEnum.Orthographic, "Resources/Shaders/TextureWithColorAndTextureSlot.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
+            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), GameObject.ProjectionTypeEnum.Orthographic, "Resources/Shaders/TextureWithColorAndTextureSlot.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
 
 
 
@@ -104,59 +104,14 @@ namespace OpenGL.App
             base.OnUnload();
         }
 
-        public Color4 color4 = new Color4(1f, 0f, 0f, 1f);
-        public float colorFactor = 1f;
-        public Vector2 testPos = new Vector2(.5f, .5f);
-        public bool flipColor = false;
-
-        VertexColor[] verticesColor = new VertexColor[]
+        public class Event
         {
-            new VertexColor(new Color4(1f, 0f, 0f, 1f)),
-            new VertexColor(new Color4(0f, 1f, 0f, 1f)),
-            new VertexColor(new Color4(0f, 0f, 1f, 1f)),
-            new VertexColor(new Color4(1f, 1f, 1f, 1f))
-        };
+
+        }
 
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
-            if (rainbowImage)
-            {
-                if (colorFactor >= 1f)
-                {
-                    Console.WriteLine("unflipping");
-                    flipColor = false;
-                }
-                else if (colorFactor <= 0f)
-                {
-                    Console.WriteLine("flipping");
-                    flipColor = true;
-                }
-
-                if (flipColor)
-                {
-                    colorFactor += (float)(0.4f * args.Time);
-                }
-                else
-                {
-                    colorFactor -= (float)(0.4f * args.Time);
-                }
-
-                Console.WriteLine($"ColorFactor:{colorFactor}");
-
-                //this.shaderProgram.SetUniform("colorFactor", color4.R, color4.G);
-
-                var copiedVertColor = new VertexColor[verticesColor.Length];
-                Array.Copy(verticesColor, copiedVertColor, verticesColor.Length);
-
-                for (int i = 0; i < copiedVertColor.Length; i++)
-                {
-                    copiedVertColor[i].Color.R *= colorFactor;
-                    copiedVertColor[i].Color.G *= colorFactor;
-                    copiedVertColor[i].Color.B *= colorFactor;
-                }
-
-                this._gameObject.VertexArray.VertexBuffer[1].SetData(copiedVertColor, copiedVertColor.Length);
-            }
+            _gameObject.Update(args);
 
             base.OnUpdateFrame(args);
         }

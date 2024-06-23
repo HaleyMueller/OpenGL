@@ -21,6 +21,8 @@ namespace OpenGL.App
         public readonly VertexInfo VertexInfo;
         public readonly bool IsStatic;
 
+        public Array Data;
+
         public VertexBuffer(VertexInfo vertexInfo, int vertexCount, bool isStatic = true) 
         {
             this.IsDisposed = false;
@@ -68,6 +70,8 @@ namespace OpenGL.App
             {
                 throw new ArgumentOutOfRangeException(nameof(count));
             }
+
+            Data = data;
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, this.VertexBufferHandle);
             GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, count * this.VertexInfo.SizeInBytes, data);
