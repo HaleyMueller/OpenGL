@@ -1,5 +1,4 @@
 ﻿using OpenTK.Mathematics;
-using SharpFont;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +8,10 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using static FreeTypeSharp.FT;
+using static FreeTypeSharp.FT_LOAD;
+using static FreeTypeSharp.FT_Render_Mode_;
+using FreeTypeSharp;
 
 namespace OpenGL.App
 {
@@ -18,29 +21,28 @@ namespace OpenGL.App
         int _vao;
         int _vbo;
 
-        public FreeTypeFont() 
-        { 
-            Library library = new Library();
+        public unsafe FreeTypeFont() 
+        {
+            FT_LibraryRec_* lib;
+            FT_FaceRec_* face;
+            CheckForError(FT_Init_FreeType(&lib));
 
-            Face face = new Face(library, "arial.ttf");
-            face.SetPixelSizes(0, 48);
+            CheckForError(FT_New_Face(lib, (byte*)Marshal.StringToHGlobalAnsi("arial.ttf"), 0, &face));
+            CheckForError(FT_Set_Char_Size(face, 0, 16 * 48, 300, 300));
 
             GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1); // disable byte-alignment restriction
-
-            //// set texture unit
-            //GL.ActiveTexture(TextureUnit.Texture0);
-
-            
 
             for (uint i = 0; i < 128; i++)
             {
                 try
                 {
-                    face.LoadChar(i, LoadFlags.Render, LoadTarget.Normal);
+                    var glyphIndex = FT_Get_Char_Index(face, i);
+                    CheckForError(FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT));
+                    CheckForError(FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL));
 
                     int textureID = GL.GenTexture();
                     GL.BindTexture(TextureTarget.Texture2D, textureID);
-                    GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.R8, face.Glyph.Bitmap.Width, face.Glyph.Bitmap.Rows, 0, PixelFormat.Red, PixelType.UnsignedByte, face.Glyph.Bitmap.Buffer);
+                    GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.R8, ((int)face->glyph->bitmap.width), ((int)face->glyph->bitmap.rows), 0, PixelFormat.Red, PixelType.UnsignedByte, (nint)face->glyph->bitmap.buffer);
 
                     //Set texture params
                     GL.TextureParameter(textureID, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
@@ -48,19 +50,21 @@ namespace OpenGL.App
                     GL.TextureParameter(textureID, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
                     GL.TextureParameter(textureID, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
-                    //using (Bitmap bitmap = FTBitmapToBitmap(face.Glyph.Bitmap))
-                    //{
-                    //    // Save the bitmap as a PNG file
-                    //    bitmap.Save($"chars/{(char)i}.png", System.Drawing.Imaging.ImageFormat.Png);
-                    //}
+                    if ((face->glyph->bitmap.rows == 0 || face->glyph->bitmap.pitch == 0) == false) //Prevent empty texture from being saved
+                    { 
+                        using (Bitmap bitmap = BitmapFromGlyphBitmap(face->glyph->bitmap))
+                        {
+                            bitmap.Save($"chars/{i}.png", System.Drawing.Imaging.ImageFormat.Png);
+                        }
+                    }
 
                     //Save character data
                     _characters.Add(i, new Character()
                     {
                         TextureID = textureID,
-                        Size = new Vector2(face.Glyph.Bitmap.Width, face.Glyph.Bitmap.Rows),
-                        Bearing = new Vector2(face.Glyph.BitmapLeft, face.Glyph.BitmapTop),
-                        Advance = face.Glyph.Advance.X.Value
+                        Size = new Vector2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+                        Bearing = new Vector2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+                        Advance = face->glyph->advance.x.ToInt32()
                     });
                 }
                 catch (Exception ex)
@@ -93,24 +97,44 @@ namespace OpenGL.App
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindVertexArray(0);
-
         }
 
-        static Bitmap FTBitmapToBitmap(FTBitmap ftBitmap)
+        public void CheckForError(FT_Error fT_Error)
         {
-            int width = ftBitmap.Width;
-            int height = ftBitmap.Rows;
+            if (fT_Error != FT_Error.FT_Err_Ok)
+            {
+                Console.WriteLine($"FreeTypeFont error: {fT_Error}");
+            }
+        }
+
+        private unsafe static Bitmap BitmapFromGlyphBitmap(FT_Bitmap_ ftBitmap)
+        {
+            int width = (int)ftBitmap.width;
+            int height = (int)ftBitmap.rows;
+            int pitch = ftBitmap.pitch;
+
+            // Create a new bitmap with the glyph dimensions
             Bitmap bitmap = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+            // Lock the bitmap's bits
+            System.Drawing.Imaging.BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, width, height), System.Drawing.Imaging.ImageLockMode.WriteOnly, bitmap.PixelFormat);
+
+            // Copy the glyph buffer to the bitmap
+            byte* buffer = (byte*)ftBitmap.buffer;
 
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    byte value = Marshal.ReadByte(ftBitmap.Buffer, y * ftBitmap.Pitch + x);
-                    Color color = Color.FromArgb(value, value, value);
-                    bitmap.SetPixel(x, y, color);
+                    byte grayValue = ftBitmap.buffer[y * pitch + x];
+                    Color color = Color.FromArgb(grayValue, grayValue, grayValue, grayValue); // Grayscale
+                    IntPtr pixelAddress = bitmapData.Scan0 + (y * bitmapData.Stride) + (x * 4);
+                    Marshal.WriteInt32(pixelAddress, color.ToArgb());
                 }
             }
+
+            // Unlock the bits
+            bitmap.UnlockBits(bitmapData);
 
             return bitmap;
         }

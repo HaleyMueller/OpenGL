@@ -2,13 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="freetype" Version="2.8.0.1" />
+    <PackageReference Include="FreeTypeSharp" Version="3.0.0" />
     <PackageReference Include="OpenTK" Version="4.7.7" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
   </ItemGroup>
@@ -38,20 +39,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="bin\" />
     <Folder Include="libs\" />
     <Folder Include="Properties\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ApplicationDefinition Include="bin\freetype6.dll">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </ApplicationDefinition>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="bin\freetype6.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
