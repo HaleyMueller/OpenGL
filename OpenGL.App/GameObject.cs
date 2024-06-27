@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenGL.App.Core.Shader;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
@@ -15,7 +16,7 @@ namespace OpenGL.App
         public ProjectionTypeEnum ProjectionType;
 
         public Texture2D Texture;
-        public ShaderProgram ShaderProgram;
+        public string ShaderFactoryID;
         public VertexArray VertexArray;
         public IndexBuffer IndexBuffer;
 
@@ -25,14 +26,14 @@ namespace OpenGL.App
             Orthographic
         }
 
-        public GameObject(Vector3 position, ProjectionTypeEnum projectionType, string shaderFile, VertexBuffer[] vertexArray, int[] indices, Texture2D texture = null)
+        public GameObject(Vector3 position, ProjectionTypeEnum projectionType, string shaderFactoryID, VertexBuffer[] vertexArray, int[] indices, Texture2D texture = null)
         {
             Position = position;
             ProjectionType = projectionType;
             Texture = texture;
-            ShaderProgram = new ShaderProgram(shaderFile);
+            ShaderFactoryID = shaderFactoryID;
 
-            VertexArray = new VertexArray(vertexArray, ShaderProgram.ShaderProgramHandle);
+            VertexArray = new VertexArray(vertexArray, ShaderFactory.ShaderPrograms[shaderFactoryID].ShaderProgramHandle);
 
             this.IndexBuffer = new IndexBuffer(indices.Length, true);
             this.IndexBuffer.SetData(indices, indices.Length);
@@ -40,7 +41,7 @@ namespace OpenGL.App
 
         public void GPU_Use()
         {
-            GL.UseProgram(this.ShaderProgram.ShaderProgramHandle); //Use shader program
+            GL.UseProgram(ShaderFactory.ShaderPrograms[this.ShaderFactoryID].ShaderProgramHandle); //Use shader program
             
             if (Texture != null)
                 Texture.Use();
@@ -63,7 +64,6 @@ namespace OpenGL.App
             this.Texture?.Dispose();
             this.VertexArray?.Dispose();
             this.IndexBuffer?.Dispose();
-            this.ShaderProgram?.Dispose();
         }
     }
 

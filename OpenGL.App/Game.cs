@@ -12,11 +12,13 @@ using OpenTK.Graphics;
 using System.Drawing.Imaging;
 using System.Drawing;
 using OpenGL.App.Management;
+using OpenGL.App.Core.Shader;
 
 namespace OpenGL.App
 {
     public class Game : GameWindow
     {
+        public ShaderFactory ShaderFactory { get; private set; }
         private ShaderProgram _fontShaderProgram;
         private FreeTypeFont _font;
 
@@ -53,8 +55,7 @@ namespace OpenGL.App
 
             GL.ClearColor(Color4.DarkCyan); //Set up clear color
 
-            int windowWidth = this.ClientSize.X;
-            int windowHeight = this.ClientSize.Y;
+            ShaderFactory = new ShaderFactory();
 
             VertexPositionTexture[] vertices = new VertexPositionTexture[]
                 {
@@ -88,7 +89,7 @@ namespace OpenGL.App
 
             var _texture = ResourceManager.Instance.LoadTexture("C:\\tmp\\test.png");
 
-            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), GameObject.ProjectionTypeEnum.Orthographic, "Resources/Shaders/TextureWithColorAndTextureSlot.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
+            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlot.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
 
 
 
@@ -103,6 +104,7 @@ namespace OpenGL.App
         {
             //Removing everything
             _gameObject.Dispose();
+            ShaderFactory.Dispose();
 
             base.OnUnload();
         }
