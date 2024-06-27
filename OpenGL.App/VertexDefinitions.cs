@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Mathematics;
@@ -9,17 +10,24 @@ namespace OpenGL.App
 {
     public readonly struct VertexAttribute
     {
+        /// <summary>
+        /// Needs to match the shader Attribute by name
+        /// </summary>
         public readonly string Name;
-        public readonly int Index; 
+        /// <summary>
+        /// How many variables inside this variable. Example: Color4 is 4 floats
+        /// </summary>
         public readonly int ComponentCount;
-        public readonly int Offset;
+        /// <summary>
+        /// What data type is this variable and what is the sizeof(it)
+        /// </summary>
+        public readonly int SizeOfType;
 
-        public VertexAttribute(string name, int index, int componentCount, int offset)
+        public VertexAttribute(string name, int componentCount, int sizeofType)
         {
             Name = name;
-            Index = index;
             ComponentCount = componentCount;
-            Offset = offset;
+            SizeOfType = sizeofType;
         }
     }
 
@@ -38,7 +46,7 @@ namespace OpenGL.App
             for (int i = 0; i < attributes.Length; i++)
             {
                 VertexAttribute attribute = attributes[i];
-                this.SizeInBytes += attribute.ComponentCount * sizeof(float);
+                this.SizeInBytes += attribute.ComponentCount * attribute.SizeOfType;
             }
         }
     }
@@ -49,15 +57,15 @@ namespace OpenGL.App
     /// </summary>
     public  struct VertexPositionColor
     {
-        public  Vector2 Position;
+        public Vector2 Position;
         public readonly Color4 Color;
 
         public static readonly VertexInfo VertexInfo = 
         new VertexInfo
         (
             typeof(VertexPositionColor), 
-            new VertexAttribute("Position", 0, 2, 0),
-            new VertexAttribute("Color", 2, 4, 4 * sizeof(float))
+            new VertexAttribute("Position", 2, sizeof(float)),
+            new VertexAttribute("Color", 4, sizeof(float))
         );
 
         public VertexPositionColor(Vector2 position, Color4 color)
@@ -75,7 +83,7 @@ namespace OpenGL.App
         new VertexInfo
         (
             typeof(VertexPosition),
-            new VertexAttribute("Position", 0, 2, 0)
+            new VertexAttribute("Position", 2, sizeof(float))
         );
 
         public VertexPosition(Vector2 position)
@@ -84,12 +92,17 @@ namespace OpenGL.App
         }
     }
 
-    public interface  test
+    public interface VertexDefinition
     {
 
     }
 
-    public struct VertexColor : test
+    public class VertexDefinitionGroup
+    {
+        public List<VertexDefinition> VertexDefinitions = new List<VertexDefinition>();
+    }
+
+    public struct VertexColor : VertexDefinition
     {
         public Color4 Color;
 
@@ -97,7 +110,7 @@ namespace OpenGL.App
         new VertexInfo
         (
             typeof(VertexColor),
-            new VertexAttribute("Color", 2, 4, 0) //Offset is dependent on this list of attributes only. Not the total going into the VAO
+            new VertexAttribute("Color", 4, sizeof(float)) //Offset is dependent on this list of attributes only. Not the total going into the VAO
         );
 
         public VertexColor(Color4 position)
@@ -106,7 +119,7 @@ namespace OpenGL.App
         }
     }
 
-    public readonly struct VertexPositionTexture
+    public readonly struct VertexPositionTexture : VertexDefinition
     {
         public readonly Vector2 Position;
         public readonly Vector2 TexCoord;
@@ -115,14 +128,26 @@ namespace OpenGL.App
         new VertexInfo
         (
             typeof(VertexPositionTexture),
-            new VertexAttribute("Position", 0, 2, 0),
-            new VertexAttribute("TexCoord", 1, 2, 2 * sizeof(float))
+            new VertexAttribute("Position", 2, sizeof(float)),
+            new VertexAttribute("TexCoord", 2, sizeof(float))
         );
 
         public VertexPositionTexture(Vector2 position, Vector2 texCoord)
         {
             this.Position = position;
             this.TexCoord = texCoord;
+        }
+
+    }
+
+    public readonly struct VertexPositionTextureArray : VertexDefinition
+    {
+        public readonly VertexPositionTexture[] Array;
+
+
+        public VertexPositionTextureArray(VertexPositionTexture[] array)
+        {
+            this.Array = array;
         }
 
     }
@@ -137,9 +162,9 @@ namespace OpenGL.App
         new VertexInfo
         (
             typeof(VertexPositionTextureColor),
-            new VertexAttribute("Position", 0, 2, 0),
-            new VertexAttribute("TexCoord", 1, 2, 2 * sizeof(float)), //TODO automatically create offsets
-            new VertexAttribute("Color", 2, 4, 4 * sizeof(float))
+            new VertexAttribute("Position", 2, sizeof(float)),
+            new VertexAttribute("TexCoord", 2, sizeof(float)),
+            new VertexAttribute("Color", 4, sizeof(float))
         );
 
         public VertexPositionTextureColor(Vector2 position, Vector2 texCoord, Color4 color)

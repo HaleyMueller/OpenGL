@@ -32,7 +32,7 @@ namespace OpenGL.App
             Texture = texture;
             ShaderProgram = new ShaderProgram(shaderFile);
 
-            VertexArray = new VertexArray(vertexArray);
+            VertexArray = new VertexArray(vertexArray, ShaderProgram.ShaderProgramHandle);
 
             this.IndexBuffer = new IndexBuffer(indices.Length, true);
             this.IndexBuffer.SetData(indices, indices.Length);

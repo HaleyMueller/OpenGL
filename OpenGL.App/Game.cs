@@ -77,6 +77,9 @@ namespace OpenGL.App
                 0, 1, 2, 0, 2, 3
             };
 
+            var vertexDefGroup = new VertexDefinitionGroup();
+            vertexDefGroup.VertexDefinitions.Add(new VertexPositionTextureArray(vertices));
+
             var vertexBuffer = new VertexBuffer(VertexPositionTexture.VertexInfo, vertices.Length, true);
             vertexBuffer.SetData(vertices, vertices.Length);
 

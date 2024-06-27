@@ -1,19 +1,19 @@
 #VertexShader
 #version 330 core
 
-layout (location = 0) in vec2 aPosition; //attribute variables start with 'a'. attribute are per-vertex parameters (typically : positions, normals, colors, UVs, ...) ;
-layout (location = 1) in vec2 aTexCoord;
-layout (location = 2) in vec4 aColor;
+layout (location = 0) in vec2 Position; //attribute variables start with 'a'. attribute are per-vertex parameters (typically : positions, normals, colors, UVs, ...) ;
+layout (location = 1) in vec2 TexCoord;
+layout (location = 2) in vec4 Color;
 
 out vec2 texCoord;
 out vec4 color;
 
 void main()
 {
-	color = aColor;
-	gl_Position = vec4(aPosition.x, aPosition.y, 0, 1f);
+	color = Color;
+	gl_Position = vec4(Position.x, Position.y, 0, 1f);
 
-	texCoord = aTexCoord;
+	texCoord = TexCoord;
 }
 #FragmentShader
 #version 330 core
