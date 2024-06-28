@@ -44,8 +44,8 @@ namespace OpenGL.App.Core.Shader
         public readonly int VertexShaderHandle;
         public readonly int PixelShaderHandle;
 
-        private readonly ShaderUniform[] Uniforms;
-        private readonly ShaderAttribute[] Attributes;
+        private readonly Dictionary<string, ShaderUniform> Uniforms;
+        private readonly Dictionary<string, ShaderAttribute> Attributes;
 
         public ShaderProgram(string fileName)
         {
@@ -75,27 +75,18 @@ namespace OpenGL.App.Core.Shader
         }
 
         #region OpenGL
-        public ShaderUniform[] GetUniformList()
-        {
-            ShaderUniform[] result = new ShaderUniform[Uniforms.Length];
-            Array.Copy(Uniforms, result, Uniforms.Length);
-            return result;
-        }
 
-        public ShaderAttribute[] GetAttributeList()
+        public ShaderUniform GetUniform(string name)
         {
-            ShaderAttribute[] result = new ShaderAttribute[Attributes.Length];
-            Array.Copy(Attributes, result, Attributes.Length);
-            return result;
-        }
+            if (Uniforms.TryGetValue(name, out var uniform) == false)
+                throw new ArgumentException($"Shader uniform name was not found {name}");
 
+            return uniform;
+        }
 
         public void SetUniform(string name, float v1)
         {
-            if (GetShaderUniform(name, out ShaderUniform uniform) == false)
-            {
-                throw new ArgumentException($"Shader uniform name was not found {name}");
-            }
+            var uniform = GetUniform(name);
 
             if (uniform.Type != ActiveUniformType.Float)
             {
@@ -109,14 +100,11 @@ namespace OpenGL.App.Core.Shader
 
         public void SetUniform(string name, float v1, float v2)
         {
-            if (GetShaderUniform(name, out ShaderUniform uniform) == false)
-            {
-                throw new ArgumentException($"Shader uniform name was not found {name}");
-            }
+            var uniform = GetUniform(name);
 
-            if (uniform.Type != ActiveUniformType.FloatVec2)
+            if (uniform.Type != ActiveUniformType.Float)
             {
-                throw new ArgumentException("Shader uniform type is not float vec 2");
+                throw new ArgumentException("Shader uniform type is not float");
             }
 
             GL.UseProgram(ShaderProgramHandle); //Tell open gl what program we going to send array to
@@ -126,14 +114,11 @@ namespace OpenGL.App.Core.Shader
 
         public void SetUniform(string name, float v1, float v2, float v3)
         {
-            if (GetShaderUniform(name, out ShaderUniform uniform) == false)
-            {
-                throw new ArgumentException($"Shader uniform name was not found {name}");
-            }
+            var uniform = GetUniform(name);
 
-            if (uniform.Type != ActiveUniformType.FloatVec3)
+            if (uniform.Type != ActiveUniformType.Float)
             {
-                throw new ArgumentException("Shader uniform type is not float vec 2");
+                throw new ArgumentException("Shader uniform type is not float");
             }
 
             GL.UseProgram(ShaderProgramHandle); //Tell open gl what program we going to send array to
@@ -143,36 +128,16 @@ namespace OpenGL.App.Core.Shader
 
         public void SetUniform(string name, float v1, float v2, float v3, float v4)
         {
-            if (GetShaderUniform(name, out ShaderUniform uniform) == false)
-            {
-                throw new ArgumentException($"Shader uniform name was not found {name}");
-            }
+            var uniform = GetUniform(name);
 
-            if (uniform.Type != ActiveUniformType.FloatVec4)
+            if (uniform.Type != ActiveUniformType.Float)
             {
-                throw new ArgumentException("Shader uniform type is not float vec 2");
+                throw new ArgumentException("Shader uniform type is not float");
             }
 
             GL.UseProgram(ShaderProgramHandle); //Tell open gl what program we going to send array to
             GL.Uniform4(uniform.Location, v1, v2, v3, v4); //Set the location variable on the shader code with the value
             GL.UseProgram(0); //Clear
-        }
-
-        private bool GetShaderUniform(string name, out ShaderUniform shaderUniform)
-        {
-            shaderUniform = new ShaderUniform();
-
-            for (int i = 0; i < Uniforms.Length; i++)
-            {
-                shaderUniform = Uniforms[i];
-
-                if (name == shaderUniform.Name)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         public static bool CompileVertexShader(string vertexShaderCode, out int vertexShaderHandle, out string errorMessage)
@@ -230,33 +195,33 @@ namespace OpenGL.App.Core.Shader
             return shaderProgramHandle;
         }
 
-        public static ShaderUniform[] CreateUniformList(int shaderProgramHandle)
+        public static Dictionary<string, ShaderUniform> CreateUniformList(int shaderProgramHandle)
         {
-            GL.GetProgram(shaderProgramHandle, GetProgramParameterName.ActiveUniforms, out int uniformCount);
+            var uniforms = new Dictionary<string, ShaderUniform>();
 
-            ShaderUniform[] uniforms = new ShaderUniform[uniformCount];
+            GL.GetProgram(shaderProgramHandle, GetProgramParameterName.ActiveUniforms, out int uniformCount);
 
             for (int i = 0; i < uniformCount; i++)
             {
                 GL.GetActiveUniform(shaderProgramHandle, i, 256, out _, out _, out ActiveUniformType type, out string name);
                 int locationID = GL.GetUniformLocation(shaderProgramHandle, name);
-                uniforms[i] = new ShaderUniform(name, locationID, type);
+                uniforms.Add(name, new ShaderUniform(name, locationID, type));
             }
 
             return uniforms;
         }
 
-        public static ShaderAttribute[] CreateAttributeList(int shaderProgramHandle)
+        public static Dictionary<string, ShaderAttribute> CreateAttributeList(int shaderProgramHandle)
         {
             GL.GetProgram(shaderProgramHandle, GetProgramParameterName.ActiveAttributes, out int attributeCount);
 
-            ShaderAttribute[] attributes = new ShaderAttribute[attributeCount];
+            var attributes = new Dictionary<string, ShaderAttribute>();
 
             for (int i = 0; i < attributeCount; i++)
             {
                 GL.GetActiveAttrib(shaderProgramHandle, i, 256, out _, out _, out ActiveAttribType type, out string name);
                 int locationID = GL.GetAttribLocation(shaderProgramHandle, name);
-                attributes[i] = new ShaderAttribute(name, locationID, type);
+                attributes.Add(name, new ShaderAttribute(name, locationID, type));
             }
 
             return attributes;

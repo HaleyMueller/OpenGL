@@ -130,8 +130,8 @@ namespace OpenGL.App
         {
             Matrix4 projectionM = Matrix4.CreateOrthographicOffCenter(0.0f, Game._Game.ClientRectangle.Size.X, Game._Game.ClientRectangle.Size.Y, 0.0f, -1.0f, 1.0f);
 
-            GL.Uniform4(ShaderFactory.ShaderPrograms["TextShader.glsl"].GetUniformList().FirstOrDefault(x => x.Name == "textColor").Location, color.R, color.G, color.B, color.A);
-            GL.UniformMatrix4(ShaderFactory.ShaderPrograms["TextShader.glsl"].GetUniformList().FirstOrDefault(x => x.Name == "projection").Location, false, ref projectionM);
+            GL.Uniform4(ShaderFactory.ShaderPrograms["TextShader.glsl"].GetUniform("textColor").Location, color.R, color.G, color.B, color.A);
+            GL.UniformMatrix4(ShaderFactory.ShaderPrograms["TextShader.glsl"].GetUniform("projection").Location, false, ref projectionM);
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindVertexArray(this._vao.VertexArrayHandle);
 
