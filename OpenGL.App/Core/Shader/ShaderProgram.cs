@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
-namespace OpenGL.App
+namespace OpenGL.App.Core.Shader
 {
     public readonly struct ShaderUniform
     {
@@ -47,26 +47,26 @@ namespace OpenGL.App
         private readonly ShaderUniform[] Uniforms;
         private readonly ShaderAttribute[] Attributes;
 
-        public ShaderProgram(string fileName) 
+        public ShaderProgram(string fileName)
         {
-            this.disposed = false;
+            disposed = false;
 
             var shader = LoadShader(fileName);
 
-            if (CompileVertexShader(shader.VertexShader, out this.VertexShaderHandle, out string vertexShaderCompileError) == false) //If errored
+            if (CompileVertexShader(shader.VertexShader, out VertexShaderHandle, out string vertexShaderCompileError) == false) //If errored
             {
                 throw new ArgumentException(vertexShaderCompileError);
             }
 
-            if (CompilePixelShader(shader.FragmentShader, out this.PixelShaderHandle, out string pixelShaderCompileError) == false) //If errored
+            if (CompilePixelShader(shader.FragmentShader, out PixelShaderHandle, out string pixelShaderCompileError) == false) //If errored
             {
                 throw new ArgumentException(pixelShaderCompileError);
             }
 
-            this.ShaderProgramHandle = CreateLinkProgram(VertexShaderHandle, PixelShaderHandle);
+            ShaderProgramHandle = CreateLinkProgram(VertexShaderHandle, PixelShaderHandle);
 
-            this.Uniforms = CreateUniformList(this.ShaderProgramHandle);
-            this.Attributes = CreateAttributeList(this.ShaderProgramHandle);
+            Uniforms = CreateUniformList(ShaderProgramHandle);
+            Attributes = CreateAttributeList(ShaderProgramHandle);
         }
 
         public void Use()
@@ -77,15 +77,15 @@ namespace OpenGL.App
         #region OpenGL
         public ShaderUniform[] GetUniformList()
         {
-            ShaderUniform[] result = new ShaderUniform[this.Uniforms.Length];
-            Array.Copy(this.Uniforms, result, this.Uniforms.Length);
+            ShaderUniform[] result = new ShaderUniform[Uniforms.Length];
+            Array.Copy(Uniforms, result, Uniforms.Length);
             return result;
         }
 
         public ShaderAttribute[] GetAttributeList()
         {
-            ShaderAttribute[] result = new ShaderAttribute[this.Attributes.Length];
-            Array.Copy(this.Attributes, result, this.Attributes.Length);
+            ShaderAttribute[] result = new ShaderAttribute[Attributes.Length];
+            Array.Copy(Attributes, result, Attributes.Length);
             return result;
         }
 
@@ -102,7 +102,7 @@ namespace OpenGL.App
                 throw new ArgumentException("Shader uniform type is not float");
             }
 
-            GL.UseProgram(this.ShaderProgramHandle); //Tell open gl what program we going to send array to
+            GL.UseProgram(ShaderProgramHandle); //Tell open gl what program we going to send array to
             GL.Uniform1(uniform.Location, v1); //Set the location variable on the shader code with the value
             GL.UseProgram(0); //Clear
         }
@@ -119,7 +119,7 @@ namespace OpenGL.App
                 throw new ArgumentException("Shader uniform type is not float vec 2");
             }
 
-            GL.UseProgram(this.ShaderProgramHandle); //Tell open gl what program we going to send array to
+            GL.UseProgram(ShaderProgramHandle); //Tell open gl what program we going to send array to
             GL.Uniform2(uniform.Location, v1, v2); //Set the location variable on the shader code with the value
             GL.UseProgram(0); //Clear
         }
@@ -136,7 +136,7 @@ namespace OpenGL.App
                 throw new ArgumentException("Shader uniform type is not float vec 2");
             }
 
-            GL.UseProgram(this.ShaderProgramHandle); //Tell open gl what program we going to send array to
+            GL.UseProgram(ShaderProgramHandle); //Tell open gl what program we going to send array to
             GL.Uniform3(uniform.Location, v1, v2, v3); //Set the location variable on the shader code with the value
             GL.UseProgram(0); //Clear
         }
@@ -153,7 +153,7 @@ namespace OpenGL.App
                 throw new ArgumentException("Shader uniform type is not float vec 2");
             }
 
-            GL.UseProgram(this.ShaderProgramHandle); //Tell open gl what program we going to send array to
+            GL.UseProgram(ShaderProgramHandle); //Tell open gl what program we going to send array to
             GL.Uniform4(uniform.Location, v1, v2, v3, v4); //Set the location variable on the shader code with the value
             GL.UseProgram(0); //Clear
         }
@@ -162,16 +162,16 @@ namespace OpenGL.App
         {
             shaderUniform = new ShaderUniform();
 
-            for (int i = 0; i < this.Uniforms.Length; i++)
+            for (int i = 0; i < Uniforms.Length; i++)
             {
-                shaderUniform = this.Uniforms[i];
+                shaderUniform = Uniforms[i];
 
                 if (name == shaderUniform.Name)
                 {
                     return true;
                 }
             }
-            
+
             return false;
         }
 
@@ -225,7 +225,7 @@ namespace OpenGL.App
             //Get rid of shaders in RAM after giving shaders to GPU to keep
             GL.DetachShader(shaderProgramHandle, vertexShaderHandle);
             GL.DetachShader(shaderProgramHandle, pixelShaderHandle);
-            
+
 
             return shaderProgramHandle;
         }
@@ -293,7 +293,7 @@ namespace OpenGL.App
                 StringBuilder sbVertex = new StringBuilder();
                 StringBuilder sbPixel = new StringBuilder();
 
-                String line;
+                string line;
                 while ((line = sr.ReadLine()) != null)
                 {
                     // Process line
@@ -339,15 +339,15 @@ namespace OpenGL.App
 
         public void Dispose()
         {
-            if (this.disposed) return;
+            if (disposed) return;
 
-            GL.DeleteShader(this.VertexShaderHandle);
-            GL.DeleteShader(this.PixelShaderHandle);
+            GL.DeleteShader(VertexShaderHandle);
+            GL.DeleteShader(PixelShaderHandle);
 
             GL.UseProgram(0);
-            GL.DeleteProgram(this.ShaderProgramHandle);
+            GL.DeleteProgram(ShaderProgramHandle);
 
-            this.disposed = true;
+            disposed = true;
             GC.SuppressFinalize(this);
         }
     }

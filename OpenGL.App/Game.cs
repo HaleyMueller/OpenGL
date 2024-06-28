@@ -18,8 +18,9 @@ namespace OpenGL.App
 {
     public class Game : GameWindow
     {
+        public static Game _Game;
+
         public ShaderFactory ShaderFactory { get; private set; }
-        private ShaderProgram _fontShaderProgram;
         private FreeTypeFont _font;
 
         private PlaneWithImage _gameObject;
@@ -39,6 +40,7 @@ namespace OpenGL.App
             })
         {
             this.CenterWindow();
+            _Game = this;
         }
 
         protected override void OnResize(ResizeEventArgs e)
@@ -78,9 +80,6 @@ namespace OpenGL.App
                 0, 1, 2, 0, 2, 3
             };
 
-            var vertexDefGroup = new VertexDefinitionGroup();
-            vertexDefGroup.VertexDefinitions.Add(new VertexPositionTextureArray(vertices));
-
             var vertexBuffer = new VertexBuffer(VertexPositionTexture.VertexInfo, vertices.Length, true);
             vertexBuffer.SetData(vertices, vertices.Length);
 
@@ -90,10 +89,6 @@ namespace OpenGL.App
             var _texture = ResourceManager.Instance.LoadTexture("C:\\tmp\\test.png");
 
             _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlot.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
-
-
-
-            this._fontShaderProgram = new ShaderProgram("Resources/Shaders/TextShader.glsl");
 
             _font = new FreeTypeFont();
 
@@ -107,11 +102,6 @@ namespace OpenGL.App
             ShaderFactory.Dispose();
 
             base.OnUnload();
-        }
-
-        public class Event
-        {
-
         }
 
         protected override void OnUpdateFrame(FrameEventArgs args)
@@ -147,9 +137,9 @@ namespace OpenGL.App
 
             _gameObject.GPU_Use();
 
-            GL.UseProgram(this._fontShaderProgram.ShaderProgramHandle);
-            _font.RenderText(this._fontShaderProgram, this.Size.X, this.Size.Y, $"FPS: {framesDuringLimit}", .5f, 12f, .25f, new Vector3(1f, .8f, 1f));
-            _font.RenderText(this._fontShaderProgram, this.Size.X, this.Size.Y, "this is a test", this.Size.X/2, this.Size.Y / 2, 1f, new Vector3(.1f, .8f, .1f));
+            GL.UseProgram(ShaderFactory.ShaderPrograms["TextShader.glsl"].ShaderProgramHandle);
+            _font.RenderText($"FPS: {framesDuringLimit}", new Vector2(.5f, 12f), .25f, new Color4(1f, .8f, 1f, 1f));
+            _font.RenderText("this is a test", new Vector2(this.Size.X/2, this.Size.Y / 2), 1f, new Color4(.1f, .8f, .1f, .15f));
 
             //GL.DrawArrays(PrimitiveType.Triangles, 0, 3); //Draw call to setup triangle on GPU //THIS IS ONLY FOR DIRECT COORDS
 

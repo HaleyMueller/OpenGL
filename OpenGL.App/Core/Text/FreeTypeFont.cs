@@ -12,14 +12,16 @@ using static FreeTypeSharp.FT;
 using static FreeTypeSharp.FT_LOAD;
 using static FreeTypeSharp.FT_Render_Mode_;
 using FreeTypeSharp;
+using OpenGL.App.Core.Shader;
+using OpenGL.App.Resources.Shaders;
 
 namespace OpenGL.App
 {
     public class FreeTypeFont
     {
         Dictionary<uint, Character> _characters = new Dictionary<uint, Character>();
-        int _vao;
-        int _vbo;
+        VertexArray _vao;
+        VertexBuffer _vbo;
 
         public unsafe FreeTypeFont() 
         {
@@ -73,30 +75,13 @@ namespace OpenGL.App
                 }
             }
 
-            //// bind default texture
-            //GL.BindTexture(TextureTarget.Texture2D, 0);
-
-            //// set default (4 byte) pixel alignment 
-            //GL.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
-
             GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1);
 
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-            
-
-            _vao = GL.GenVertexArray();
-            _vbo = GL.GenBuffer();
-            GL.BindVertexArray(_vao);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-
-            GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * 6 * 4, IntPtr.Zero, BufferUsageHint.DynamicDraw);
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(0, 4, VertexAttribPointerType.Float, false, 4 * sizeof(float), 0);
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.BindVertexArray(0);
+            _vbo = new VertexBuffer(TextShader.VertexInfo, 6, false);
+            _vao = new VertexArray(new VertexBuffer[] {_vbo}, ShaderFactory.ShaderPrograms["TextShader.glsl"].ShaderProgramHandle);
         }
 
         public void CheckForError(FT_Error fT_Error)
@@ -139,17 +124,14 @@ namespace OpenGL.App
             return bitmap;
         }
 
-        public void RenderText(ShaderProgram shaderProgram, int screenX, int screenY, string text, float x, float y, float scale, Vector3 color)
+        public void RenderText(string text, Vector2 screenCoordinates, float scale, Color4 color)
         {
-            Matrix4 projectionM = Matrix4.CreateOrthographicOffCenter(0.0f, screenX, screenY, 0.0f, -1.0f, 1.0f);
+            Matrix4 projectionM = Matrix4.CreateOrthographicOffCenter(0.0f, Game._Game.ClientRectangle.Size.X, Game._Game.ClientRectangle.Size.Y, 0.0f, -1.0f, 1.0f);
 
-            //var projection = Matrix4.CreateOrthographic(0.0f, 1280.0f, 0.0f, 768.0f);
-
-            //shaderProgram.Use();
-            GL.Uniform3(shaderProgram.GetUniformList().FirstOrDefault(x => x.Name == "textColor").Location, color.X, color.Y, color.Z);
-            GL.UniformMatrix4(shaderProgram.GetUniformList().FirstOrDefault(x => x.Name == "projection").Location, false, ref projectionM);
+            GL.Uniform4(ShaderFactory.ShaderPrograms["TextShader.glsl"].GetUniformList().FirstOrDefault(x => x.Name == "textColor").Location, color.R, color.G, color.B, color.A);
+            GL.UniformMatrix4(ShaderFactory.ShaderPrograms["TextShader.glsl"].GetUniformList().FirstOrDefault(x => x.Name == "projection").Location, false, ref projectionM);
             GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindVertexArray(_vao);
+            GL.BindVertexArray(this._vao.VertexArrayHandle);
 
             foreach (var c in text)
             {
@@ -158,42 +140,29 @@ namespace OpenGL.App
 
                 Character ch = _characters[c];
 
-                float xpos = x + ch.Bearing.X * scale;
-                float ypos = y - (ch.Size.Y - ch.Bearing.Y) * scale;
+                float xpos = screenCoordinates.X + ch.Bearing.X * scale;
+                float ypos = screenCoordinates.Y - (ch.Size.Y - ch.Bearing.Y) * scale;
 
                 float w = ch.Size.X * scale;
                 float h = ch.Size.Y * scale;
 
                 // update VBO for each character
-                float[,] vertices = new float[6, 4]{
-                    { xpos,     ypos - h,   0.0f, 0.0f },
-                    { xpos,     ypos,       0.0f, 1.0f },
-                    { xpos + w, ypos,       1.0f, 1.0f },
+                TextShader[] vertices = new TextShader[]
+                {
+                    new TextShader(new Vector2(xpos, ypos-h), new Vector2(0, 0)),
+                    new TextShader(new Vector2(xpos, ypos), new Vector2(0, 1)),
+                    new TextShader(new Vector2(xpos+w, ypos), new Vector2(1, 1)),
 
-                    { xpos,     ypos - h,   0.0f, 0.0f },
-                    { xpos + w, ypos,       1.0f, 1.0f },
-                    { xpos + w, ypos - h,   1.0f, 0.0f }
+                    new TextShader(new Vector2(xpos, ypos-h), new Vector2(0, 0)),
+                    new TextShader(new Vector2(xpos+w, ypos), new Vector2(1, 1)),
+                    new TextShader(new Vector2(xpos+w, ypos-h), new Vector2(1, 0))
                 };
 
-                //float[,] vertices = new float[6,4]
-                //{  
-                //    { 0.0f, -1.0f,   0.0f, 0.0f},
-                //    { 0.0f,  0.0f,   0.0f, 1.0f},
-                //    { 1.0f,  0.0f,   1.0f, 1.0f},
-                //    { 0.0f, -1.0f,   0.0f, 0.0f},
-                //    { 1.0f,  0.0f,   1.0f, 1.0f},
-                //    { 1.0f, -1.0f,   1.0f, 0.0f}
-                //};
-
                 GL.BindTexture(TextureTarget.Texture2D, ch.TextureID);
-                //GL.GenerateTextureMipmap(ch.TextureID);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-                GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, (sizeof(float) * 4 * 6), vertices);
-
-                GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+                _vbo.SetData(vertices);
                 GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
 
-                x += (ch.Advance >> 6) * scale;
+                screenCoordinates.X += (ch.Advance >> 6) * scale;
             }
 
             GL.BindVertexArray(0);

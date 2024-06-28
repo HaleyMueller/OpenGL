@@ -52,6 +52,11 @@ namespace OpenGL.App
         }
 
         //This sets the data of the vertex handle, which means you can edit the data in real time to move stuff
+        public void SetData<T>(T[] data) where T : struct
+        {
+            SetData(data, data.Length);
+        }
+
         public void SetData<T>(T[] data, int count) where T : struct
         {
             if (typeof(T) != this.VertexInfo.Type)
