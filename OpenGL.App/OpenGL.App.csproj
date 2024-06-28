@@ -21,6 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Resources\Fonts\arial.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\Shaders\TextShader.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -40,7 +43,6 @@
 
   <ItemGroup>
     <Folder Include="bin\" />
-    <Folder Include="libs\" />
     <Folder Include="Properties\" />
   </ItemGroup>
 

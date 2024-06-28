@@ -11,8 +11,8 @@ using OpenTK.Mathematics;
 using OpenTK.Graphics;
 using System.Drawing.Imaging;
 using System.Drawing;
-using OpenGL.App.Management;
 using OpenGL.App.Core.Shader;
+using OpenGL.App.Core.Texture;
 
 namespace OpenGL.App
 {
@@ -86,7 +86,7 @@ namespace OpenGL.App
             var vertexColorBuffer = new VertexBuffer(VertexColor.VertexInfo, verticesColor.Length, false);
             vertexColorBuffer.SetData(verticesColor, verticesColor.Length);
 
-            var _texture = ResourceManager.Instance.LoadTexture("C:\\tmp\\test.png");
+            var _texture = TextureFactory.Instance.LoadTexture("C:\\tmp\\test.png");
 
             _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlot.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
 

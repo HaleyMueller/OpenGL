@@ -29,7 +29,7 @@ namespace OpenGL.App
             FT_FaceRec_* face;
             CheckForError(FT_Init_FreeType(&lib));
 
-            CheckForError(FT_New_Face(lib, (byte*)Marshal.StringToHGlobalAnsi("arial.ttf"), 0, &face));
+            CheckForError(FT_New_Face(lib, (byte*)Marshal.StringToHGlobalAnsi("Resources/Fonts/arial.ttf"), 0, &face));
             CheckForError(FT_Set_Char_Size(face, 0, 16 * 48, 300, 300));
 
             GL.PixelStore(PixelStoreParameter.UnpackAlignment, 1); // disable byte-alignment restriction

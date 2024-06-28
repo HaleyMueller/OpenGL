@@ -6,11 +6,44 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
 
-namespace OpenGL.App.Textures
+namespace OpenGL.App.Core.Texture
 {
-    public static class TextureFactory
+    public sealed class TextureFactory
     {
-        public static Texture2D Load(string textureName)
+        private static TextureFactory instance = null;
+        private static readonly object _loc = new();
+        private IDictionary<string, Texture2D> _textureCache = new Dictionary<string, Texture2D>();
+
+        public static TextureFactory Instance
+        {
+            get
+            {
+                lock (_loc)
+                {
+                    if (instance == null)
+                    {
+                        instance = new TextureFactory();
+                    }
+                }
+
+                return instance;
+            }
+        }
+
+        public Texture2D LoadTexture(string textureName)
+        {
+            _textureCache.TryGetValue(textureName, out Texture2D texture);
+            if (texture != null)
+            {
+                return texture;
+            }
+
+            texture = Load(textureName);
+            _textureCache.Add(textureName, texture);
+            return texture;
+        }
+
+        private static Texture2D Load(string textureName)
         {
             int handle = GL.GenTexture();
             GL.ActiveTexture(TextureUnit.Texture0);
