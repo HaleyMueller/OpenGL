@@ -14,6 +14,7 @@ using static FreeTypeSharp.FT_Render_Mode_;
 using FreeTypeSharp;
 using OpenGL.App.Core.Shader;
 using OpenGL.App.Resources.Shaders;
+using OpenGL.App.Core.Vertex;
 
 namespace OpenGL.App
 {
@@ -52,13 +53,14 @@ namespace OpenGL.App
                     GL.TextureParameter(textureID, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
                     GL.TextureParameter(textureID, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
-                    if ((face->glyph->bitmap.rows == 0 || face->glyph->bitmap.pitch == 0) == false) //Prevent empty texture from being saved
-                    { 
-                        using (Bitmap bitmap = BitmapFromGlyphBitmap(face->glyph->bitmap))
-                        {
-                            bitmap.Save($"chars/{i}.png", System.Drawing.Imaging.ImageFormat.Png);
-                        }
-                    }
+                    //if ((face->glyph->bitmap.rows == 0 || face->glyph->bitmap.pitch == 0) == false) //Prevent empty texture from being saved
+                    //{
+                    //    if (Directory.Exists("chars") == false) Directory.CreateDirectory("chars");
+                    //    using (Bitmap bitmap = BitmapFromGlyphBitmap(face->glyph->bitmap))
+                    //    {
+                    //        bitmap.Save($"chars/{i}.png", System.Drawing.Imaging.ImageFormat.Png);
+                    //    }
+                    //}
 
                     //Save character data
                     _characters.Add(i, new Character()

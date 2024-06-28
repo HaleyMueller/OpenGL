@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
 
-namespace OpenGL.App
+namespace OpenGL.App.Core.Vertex
 {
     /// <summary>
     /// This class will set up how big the information you are setting on the gpu is that will be used for the vertex array
@@ -23,18 +23,18 @@ namespace OpenGL.App
 
         public Array Data;
 
-        public VertexBuffer(VertexInfo vertexInfo, int vertexCount, bool isStatic = true) 
+        public VertexBuffer(VertexInfo vertexInfo, int vertexCount, bool isStatic = true)
         {
-            this.IsDisposed = false;
+            IsDisposed = false;
 
             if (vertexCount < MinVertexCount || vertexCount > MaxVertexCount)
             {
                 throw new ArgumentOutOfRangeException(nameof(vertexCount));
             }
 
-            this.VertexInfo = vertexInfo;
-            this.VertexCount = vertexCount;
-            this.IsStatic = isStatic;
+            VertexInfo = vertexInfo;
+            VertexCount = vertexCount;
+            IsStatic = isStatic;
 
             BufferUsageHint hint = BufferUsageHint.StaticDraw; //This will tell the buffer that the info we give it wont change on the cpu;
 
@@ -45,9 +45,9 @@ namespace OpenGL.App
 
             //int vertexSizeInBytes = VertexPositionColor.VertexInfo.SizeInBytes;
 
-            this.VertexBufferHandle = GL.GenBuffer(); //Get next buffer
-            GL.BindBuffer(BufferTarget.ArrayBuffer, this.VertexBufferHandle); //Tell it that this buffer is an array
-            GL.BufferData(BufferTarget.ArrayBuffer, this.VertexCount * this.VertexInfo.SizeInBytes, IntPtr.Zero, hint); //Se how many bytes the data will be on the gpu through the buffer
+            VertexBufferHandle = GL.GenBuffer(); //Get next buffer
+            GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferHandle); //Tell it that this buffer is an array
+            GL.BufferData(BufferTarget.ArrayBuffer, VertexCount * VertexInfo.SizeInBytes, nint.Zero, hint); //Se how many bytes the data will be on the gpu through the buffer
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0); //Bind buffer to 0 to make sure it is done
         }
 
@@ -59,7 +59,7 @@ namespace OpenGL.App
 
         public void SetData<T>(T[] data, int count) where T : struct
         {
-            if (typeof(T) != this.VertexInfo.Type)
+            if (typeof(T) != VertexInfo.Type)
             {
                 throw new ArgumentException("Generic type 'T' does not match the vertex type of the vertex buffer.");
             }
@@ -70,7 +70,7 @@ namespace OpenGL.App
             }
 
             if (count <= 0 ||
-                count > this.VertexCount ||
+                count > VertexCount ||
                 count > data.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(count));
@@ -78,27 +78,27 @@ namespace OpenGL.App
 
             Data = data;
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, this.VertexBufferHandle);
-            GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, count * this.VertexInfo.SizeInBytes, data);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferHandle);
+            GL.BufferSubData(BufferTarget.ArrayBuffer, nint.Zero, count * VertexInfo.SizeInBytes, data);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 
         ~VertexBuffer()
         {
-            this.Dispose();
+            Dispose();
         }
 
         public void Dispose()
         {
-            if (this.IsDisposed)
+            if (IsDisposed)
             {
                 return;
             }
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.DeleteBuffer(this.VertexBufferHandle);
+            GL.DeleteBuffer(VertexBufferHandle);
 
-            this.IsDisposed = true;
+            IsDisposed = true;
             GC.SuppressFinalize(this);
         }
     }

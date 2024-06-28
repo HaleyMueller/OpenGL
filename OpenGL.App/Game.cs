@@ -13,6 +13,7 @@ using System.Drawing.Imaging;
 using System.Drawing;
 using OpenGL.App.Core.Shader;
 using OpenGL.App.Core.Texture;
+using OpenGL.App.Core.Vertex;
 
 namespace OpenGL.App
 {

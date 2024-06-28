@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
 
-namespace OpenGL.App
+namespace OpenGL.App.Core.Texture
 {
     public class Texture2D : IDisposable
     {

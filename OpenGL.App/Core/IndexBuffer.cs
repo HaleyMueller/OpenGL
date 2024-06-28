@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
 
-namespace OpenGL.App
+namespace OpenGL.App.Core
 {
     /// <summary>
     /// This tells the gpu how the to draw the indices where it won't double up vertices. (A box is 2 triangles. You don't have to draw the 2 middle vertices twice)
@@ -23,14 +23,14 @@ namespace OpenGL.App
 
         public IndexBuffer(int indexCount, bool isStatic = true)
         {
-            if (indexCount < IndexBuffer.MinIndexCount ||
-                indexCount > IndexBuffer.MaxIndexCount)
+            if (indexCount < MinIndexCount ||
+                indexCount > MaxIndexCount)
             {
                 throw new ArgumentOutOfRangeException(nameof(indexCount));
             }
 
-            this.IndexCount = indexCount;
-            this.IsStatic = isStatic;
+            IndexCount = indexCount;
+            IsStatic = isStatic;
 
             BufferUsageHint hint = BufferUsageHint.StaticDraw; //This will tell the buffer that the info we give it wont change on the cpu;
 
@@ -39,9 +39,9 @@ namespace OpenGL.App
                 hint = BufferUsageHint.StreamDraw; //This will tell the buffer that the info we give it WILL change on the cpu at some point;
             }
 
-            this.IndexBufferHandle = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.IndexBufferHandle); //Tell GL that this buffer is going to be an index buffer
-            GL.BufferData(BufferTarget.ElementArrayBuffer, this.IndexCount * sizeof(int), IntPtr.Zero, hint); //Bind variable to buffer
+            IndexBufferHandle = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, IndexBufferHandle); //Tell GL that this buffer is going to be an index buffer
+            GL.BufferData(BufferTarget.ElementArrayBuffer, IndexCount * sizeof(int), nint.Zero, hint); //Bind variable to buffer
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0); //Unbind
         }
 
@@ -52,12 +52,12 @@ namespace OpenGL.App
 
         public void Dispose()
         {
-            if (this.disposed) return;
+            if (disposed) return;
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-            GL.DeleteBuffer(this.IndexBufferHandle);
+            GL.DeleteBuffer(IndexBufferHandle);
 
-            this.disposed = true;
+            disposed = true;
             GC.SuppressFinalize(this);
         }
 
@@ -74,14 +74,14 @@ namespace OpenGL.App
             }
 
             if (count <= 0 ||
-                count > this.IndexCount ||
+                count > IndexCount ||
                 count > data.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(count));
             }
 
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.IndexBufferHandle);
-            GL.BufferSubData(BufferTarget.ElementArrayBuffer, IntPtr.Zero, count * sizeof(int), data);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, IndexBufferHandle);
+            GL.BufferSubData(BufferTarget.ElementArrayBuffer, nint.Zero, count * sizeof(int), data);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
         }
     }

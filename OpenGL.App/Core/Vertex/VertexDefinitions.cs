@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Mathematics;
 
-namespace OpenGL.App
+namespace OpenGL.App.Core.Vertex
 {
     public readonly struct VertexAttribute
     {
@@ -37,16 +37,16 @@ namespace OpenGL.App
         public readonly int SizeInBytes;
         public readonly VertexAttribute[] VertexAttributes;
 
-        public VertexInfo(Type type, params VertexAttribute[] attributes) 
-        { 
-            this.Type = type;
-            this.SizeInBytes = 0;
-            this.VertexAttributes = attributes;
+        public VertexInfo(Type type, params VertexAttribute[] attributes)
+        {
+            Type = type;
+            SizeInBytes = 0;
+            VertexAttributes = attributes;
 
             for (int i = 0; i < attributes.Length; i++)
             {
                 VertexAttribute attribute = attributes[i];
-                this.SizeInBytes += attribute.ComponentCount * attribute.SizeOfType;
+                SizeInBytes += attribute.ComponentCount * attribute.SizeOfType;
             }
         }
     }
@@ -55,23 +55,23 @@ namespace OpenGL.App
     /// <summary>
     /// When we send the array of VertexPositionColor the graphics card just sees a large array of floats (6 floats per vertex) it doesn't see the surrounding struct.. just the base data or array of floats.
     /// </summary>
-    public  struct VertexPositionColor
+    public struct VertexPositionColor
     {
         public Vector2 Position;
         public readonly Color4 Color;
 
-        public static readonly VertexInfo VertexInfo = 
+        public static readonly VertexInfo VertexInfo =
         new VertexInfo
         (
-            typeof(VertexPositionColor), 
+            typeof(VertexPositionColor),
             new VertexAttribute("Position", 2, sizeof(float)),
             new VertexAttribute("Color", 4, sizeof(float))
         );
 
         public VertexPositionColor(Vector2 position, Color4 color)
         {
-            this.Position = position;
-            this.Color = color;
+            Position = position;
+            Color = color;
         }
     }
 
@@ -88,7 +88,7 @@ namespace OpenGL.App
 
         public VertexPosition(Vector2 position)
         {
-            this.Position = position;
+            Position = position;
         }
     }
 
@@ -115,7 +115,7 @@ namespace OpenGL.App
 
         public VertexColor(Color4 position)
         {
-            this.Color = position;
+            Color = position;
         }
     }
 
@@ -124,7 +124,7 @@ namespace OpenGL.App
         public readonly Vector2 Position;
         public readonly Vector2 TexCoord;
 
-        public static readonly VertexInfo VertexInfo = 
+        public static readonly VertexInfo VertexInfo =
         new VertexInfo
         (
             typeof(VertexPositionTexture),
@@ -134,8 +134,8 @@ namespace OpenGL.App
 
         public VertexPositionTexture(Vector2 position, Vector2 texCoord)
         {
-            this.Position = position;
-            this.TexCoord = texCoord;
+            Position = position;
+            TexCoord = texCoord;
         }
 
     }
@@ -147,7 +147,7 @@ namespace OpenGL.App
 
         public VertexPositionTextureArray(VertexPositionTexture[] array)
         {
-            this.Array = array;
+            Array = array;
         }
 
     }
@@ -169,9 +169,9 @@ namespace OpenGL.App
 
         public VertexPositionTextureColor(Vector2 position, Vector2 texCoord, Color4 color)
         {
-            this.Position = position;
-            this.TexCoord = texCoord;
-            this.Color = color;
+            Position = position;
+            TexCoord = texCoord;
+            Color = color;
         }
 
     }

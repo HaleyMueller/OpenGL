@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
 
-namespace OpenGL.App
+namespace OpenGL.App.Core.Vertex
 {
     /// <summary>
     /// This class gives the gpu the information you need for a point (vertex on the screen). Such as: position, color, textures, etc.
@@ -18,19 +18,19 @@ namespace OpenGL.App
         public readonly int VertexArrayHandle;
         public readonly VertexBuffer[] VertexBuffer;
 
-        public VertexArray(VertexBuffer[] vertexBuffer, int shaderProgram) 
+        public VertexArray(VertexBuffer[] vertexBuffer, int shaderProgram)
         {
-            this.disposed = false;
+            disposed = false;
 
             if (vertexBuffer is null)
             {
                 throw new ArgumentNullException(nameof(vertexBuffer));
             }
 
-            this.VertexBuffer = vertexBuffer;
+            VertexBuffer = vertexBuffer;
 
-            this.VertexArrayHandle = GL.GenVertexArray();
-            GL.BindVertexArray(this.VertexArrayHandle);
+            VertexArrayHandle = GL.GenVertexArray();
+            GL.BindVertexArray(VertexArrayHandle);
 
             foreach (var vbo in vertexBuffer)
             {
@@ -65,17 +65,17 @@ namespace OpenGL.App
 
         public void Dispose()
         {
-            if (this.disposed) return;
+            if (disposed) return;
 
-            foreach (var vbo in this.VertexBuffer)
+            foreach (var vbo in VertexBuffer)
             {
                 vbo.Dispose();
             }
 
             GL.BindVertexArray(0);
-            GL.DeleteVertexArray(this.VertexArrayHandle);
+            GL.DeleteVertexArray(VertexArrayHandle);
 
-            this.disposed = true;
+            disposed = true;
             GC.SuppressFinalize(this);
         }
     }
