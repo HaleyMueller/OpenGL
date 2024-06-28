@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FmodAudio" Version="2.2.5" />
     <PackageReference Include="FreeTypeSharp" Version="3.0.0" />
     <PackageReference Include="OpenTK" Version="4.7.7" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.0" />
@@ -37,6 +38,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Resources\Shaders\Texture.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Sounds\close_door_metal.ogg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

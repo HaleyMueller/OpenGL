@@ -14,6 +14,8 @@ using System.Drawing;
 using OpenGL.App.Core.Shader;
 using OpenGL.App.Core.Texture;
 using OpenGL.App.Core.Vertex;
+using FmodAudio;
+using FmodAudio.DigitalSignalProcessing;
 
 namespace OpenGL.App
 {
@@ -52,9 +54,21 @@ namespace OpenGL.App
 
         bool rainbowImage = false;
 
+        FmodAudio.FmodSystem fmodSystem;
+        FmodAudio.Channel fmodChannel;
+        FmodAudio.Sound sound;
+
         protected override void OnLoad()
         {
             this.IsVisible = true;
+
+            fmodSystem = FmodAudio.Fmod.CreateSystem();
+            fmodSystem.Init(32, FmodAudio.InitFlags.Normal);
+
+            sound = fmodSystem.CreateSound("Resources/Sounds/close_door_metal.ogg");
+            fmodSystem.PlaySound(sound);
+
+
 
             GL.ClearColor(Color4.DarkCyan); //Set up clear color
 
@@ -102,6 +116,8 @@ namespace OpenGL.App
             _gameObject.Dispose();
             ShaderFactory.Dispose();
 
+            fmodSystem.Release();
+
             base.OnUnload();
         }
 
@@ -118,6 +134,8 @@ namespace OpenGL.App
 
         protected override void OnRenderFrame(FrameEventArgs args)
         {
+            fmodSystem.Update();
+
             #region FPS
             timeSpans.Add(DateTime.Now.Ticks);
 
