@@ -120,7 +120,7 @@ namespace OpenGL.App
                 copiedVertColor[i].Color.B *= colorFactor;
             }
 
-            base.VertexArray.VertexBuffer[1].SetData(copiedVertColor, copiedVertColor.Length);
+            base.VertexArray.VertexBuffer["Color"].SetData(copiedVertColor, copiedVertColor.Length);
         }
     }
 }

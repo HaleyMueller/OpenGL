@@ -20,10 +20,11 @@ namespace OpenGL.App.Core.Vertex
         public readonly int VertexCount;
         public readonly VertexInfo VertexInfo;
         public readonly bool IsStatic;
+        public readonly string Name;
 
         public Array Data;
 
-        public VertexBuffer(VertexInfo vertexInfo, int vertexCount, bool isStatic = true)
+        public VertexBuffer(VertexInfo vertexInfo, int vertexCount, string name, bool isStatic = true)
         {
             IsDisposed = false;
 
@@ -35,6 +36,7 @@ namespace OpenGL.App.Core.Vertex
             VertexInfo = vertexInfo;
             VertexCount = vertexCount;
             IsStatic = isStatic;
+            Name = name;
 
             BufferUsageHint hint = BufferUsageHint.StaticDraw; //This will tell the buffer that the info we give it wont change on the cpu;
 

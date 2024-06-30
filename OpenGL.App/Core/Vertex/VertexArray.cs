@@ -16,7 +16,7 @@ namespace OpenGL.App.Core.Vertex
         public bool disposed;
 
         public readonly int VertexArrayHandle;
-        public readonly VertexBuffer[] VertexBuffer;
+        public readonly Dictionary<string, VertexBuffer> VertexBuffer = new Dictionary<string, VertexBuffer>();
 
         public VertexArray(VertexBuffer[] vertexBuffer, int shaderProgram)
         {
@@ -27,7 +27,10 @@ namespace OpenGL.App.Core.Vertex
                 throw new ArgumentNullException(nameof(vertexBuffer));
             }
 
-            VertexBuffer = vertexBuffer;
+            foreach (var vbo in vertexBuffer)
+            {
+                VertexBuffer.Add(vbo.Name, vbo);
+            }
 
             VertexArrayHandle = GL.GenVertexArray();
             GL.BindVertexArray(VertexArrayHandle);
@@ -67,7 +70,7 @@ namespace OpenGL.App.Core.Vertex
         {
             if (disposed) return;
 
-            foreach (var vbo in VertexBuffer)
+            foreach (var vbo in VertexBuffer.Values)
             {
                 vbo.Dispose();
             }

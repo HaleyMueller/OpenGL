@@ -82,7 +82,7 @@ namespace OpenGL.App
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-            _vbo = new VertexBuffer(TextShader.VertexInfo, 6, false);
+            _vbo = new VertexBuffer(TextShader.VertexInfo, 6, "TextBuffer", false);
             _vao = new VertexArray(new VertexBuffer[] {_vbo}, ShaderFactory.ShaderPrograms["TextShader.glsl"].ShaderProgramHandle);
         }
 

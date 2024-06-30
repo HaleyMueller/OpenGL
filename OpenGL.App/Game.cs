@@ -95,10 +95,10 @@ namespace OpenGL.App
                 0, 1, 2, 0, 2, 3
             };
 
-            var vertexBuffer = new VertexBuffer(Resources.Shaders.VertexPositionTexture.VertexInfo, vertices.Length, true);
+            var vertexBuffer = new VertexBuffer(Resources.Shaders.VertexPositionTexture.VertexInfo, vertices.Length, "PositionAndTexture", true);
             vertexBuffer.SetData(vertices, vertices.Length);
 
-            var vertexColorBuffer = new VertexBuffer(Resources.Shaders.VertexColor.VertexInfo, verticesColor.Length, false);
+            var vertexColorBuffer = new VertexBuffer(Resources.Shaders.VertexColor.VertexInfo, verticesColor.Length, "Color", false);
             vertexColorBuffer.SetData(verticesColor, verticesColor.Length);
 
             var _texture = TextureFactory.Instance.LoadTexture("C:\\tmp\\test.png");
