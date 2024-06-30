@@ -80,12 +80,12 @@ namespace OpenGL.App
         public float colorFactor = 1f;
         public bool flipColor = false;
 
-        VertexColor[] verticesColor = new VertexColor[]
+        Resources.Shaders.VertexColor[] verticesColor = new Resources.Shaders.VertexColor[]
         {
-            new VertexColor(new Color4(1f, 0f, 0f, 1f)),
-            new VertexColor(new Color4(0f, 1f, 0f, 1f)),
-            new VertexColor(new Color4(0f, 0f, 1f, 1f)),
-            new VertexColor(new Color4(1f, 1f, 1f, 1f))
+            new Resources.Shaders.VertexColor(new Color4(1f, 0f, 0f, 1f)),
+            new Resources.Shaders.VertexColor(new Color4(0f, 1f, 0f, 1f)),
+            new Resources.Shaders.VertexColor(new Color4(0f, 0f, 1f, 1f)),
+            new Resources.Shaders.VertexColor(new Color4(1f, 1f, 1f, 1f))
         };
 
         public void Update(FrameEventArgs args)
@@ -110,7 +110,7 @@ namespace OpenGL.App
 
             //Console.WriteLine($"ColorFactor:{colorFactor}");
 
-            var copiedVertColor = new VertexColor[verticesColor.Length];
+            var copiedVertColor = new Resources.Shaders.VertexColor[verticesColor.Length];
             Array.Copy(verticesColor, copiedVertColor, verticesColor.Length);
 
             for (int i = 0; i < copiedVertColor.Length; i++)

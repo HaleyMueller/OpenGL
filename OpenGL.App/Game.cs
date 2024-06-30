@@ -74,20 +74,20 @@ namespace OpenGL.App
 
             ShaderFactory = new ShaderFactory();
 
-            VertexPositionTexture[] vertices = new VertexPositionTexture[]
+            Resources.Shaders.VertexPositionTexture[] vertices = new Resources.Shaders.VertexPositionTexture[]
                 {
-                new VertexPositionTexture(new Vector2(.5f, .5f), new Vector2(1, 1)),
-                new VertexPositionTexture(new Vector2(.5f, -.5f), new Vector2(1, 0)),
-                new VertexPositionTexture(new Vector2(-.5f, -.5f), new Vector2(0, 0)),
-                new VertexPositionTexture(new Vector2(-.5f, .5f), new Vector2(0, 1))
+                new Resources.Shaders.VertexPositionTexture(new Vector2(.5f, .5f), new Vector2(1, 1)),
+                new Resources.Shaders.VertexPositionTexture(new Vector2(.5f, -.5f), new Vector2(1, 0)),
+                new Resources.Shaders.VertexPositionTexture(new Vector2(-.5f, -.5f), new Vector2(0, 0)),
+                new Resources.Shaders.VertexPositionTexture(new Vector2(-.5f, .5f), new Vector2(0, 1))
                 };
 
-            VertexColor[] verticesColor = new VertexColor[]
+            Resources.Shaders.VertexColor[] verticesColor = new Resources.Shaders.VertexColor[]
             {
-                new VertexColor(new Color4(1f, 0f, 0f, 1f)),
-                new VertexColor(new Color4(0f, 1f, 0f, 1f)),
-                new VertexColor(new Color4(0f, 0f, 1f, 1f)),
-                new VertexColor(new Color4(1f, 1f, 1f, 1f))
+                new Resources.Shaders.VertexColor(new Color4(1f, 0f, 0f, 1f)),
+                new Resources.Shaders.VertexColor(new Color4(0f, 1f, 0f, 1f)),
+                new Resources.Shaders.VertexColor(new Color4(0f, 0f, 1f, 1f)),
+                new Resources.Shaders.VertexColor(new Color4(1f, 1f, 1f, 1f))
             };
 
             int[] indices = new int[]
@@ -95,10 +95,10 @@ namespace OpenGL.App
                 0, 1, 2, 0, 2, 3
             };
 
-            var vertexBuffer = new VertexBuffer(VertexPositionTexture.VertexInfo, vertices.Length, true);
+            var vertexBuffer = new VertexBuffer(Resources.Shaders.VertexPositionTexture.VertexInfo, vertices.Length, true);
             vertexBuffer.SetData(vertices, vertices.Length);
 
-            var vertexColorBuffer = new VertexBuffer(VertexColor.VertexInfo, verticesColor.Length, false);
+            var vertexColorBuffer = new VertexBuffer(Resources.Shaders.VertexColor.VertexInfo, verticesColor.Length, false);
             vertexColorBuffer.SetData(verticesColor, verticesColor.Length);
 
             var _texture = TextureFactory.Instance.LoadTexture("C:\\tmp\\test.png");
