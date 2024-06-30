@@ -16,6 +16,7 @@ using OpenGL.App.Core.Texture;
 using OpenGL.App.Core.Vertex;
 using FmodAudio;
 using FmodAudio.DigitalSignalProcessing;
+using System.Diagnostics;
 
 namespace OpenGL.App
 {
@@ -66,7 +67,7 @@ namespace OpenGL.App
             fmodSystem.Init(32, FmodAudio.InitFlags.Normal);
 
             sound = fmodSystem.CreateSound("Resources/Sounds/close_door_metal.ogg");
-            fmodSystem.PlaySound(sound);
+            //fmodSystem.PlaySound(sound);
 
 
 
@@ -107,6 +108,8 @@ namespace OpenGL.App
 
             _font = new FreeTypeFont();
 
+            Stopwatch.Start();
+
             base.OnLoad();
         }
 
@@ -132,6 +135,8 @@ namespace OpenGL.App
         TimeSpan limit = new TimeSpan(0, 0, 5);
         int framesDuringLimit = 0;
 
+        Stopwatch Stopwatch = new Stopwatch();
+
         protected override void OnRenderFrame(FrameEventArgs args)
         {
             fmodSystem.Update();
@@ -154,6 +159,13 @@ namespace OpenGL.App
 
             GL.Clear(ClearBufferMask.ColorBufferBit); //Clear color buffer
 
+            Matrix4 model = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-55f));
+            //model = model * Matrix4.CreateRotationX((float)(Stopwatch.ElapsedMilliseconds * MathHelper.DegreesToRadians(1f) * 200));
+            Matrix4 view = Matrix4.CreateTranslation(0f, 0f, -5f);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), this.ClientSize.X / this.ClientSize.Y, .1f, 100f);
+            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("model", model);
+            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("view", view);
+            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("projection", projection);
             _gameObject.GPU_Use();
 
             GL.UseProgram(ShaderFactory.ShaderPrograms["TextShader.glsl"].ShaderProgramHandle);

@@ -98,6 +98,20 @@ namespace OpenGL.App.Core.Shader
             GL.UseProgram(0); //Clear
         }
 
+        public void SetUniform(string name, Matrix4 matrix4)
+        {
+            var uniform = GetUniform(name);
+
+            if (uniform.Type != ActiveUniformType.FloatMat4)
+            {
+                throw new ArgumentException("Shader uniform type is not Matrix4");
+            }
+
+            GL.UseProgram(ShaderProgramHandle); //Tell open gl what program we going to send array to
+            GL.UniformMatrix4(uniform.Location, false, ref matrix4); //Set the location variable on the shader code with the value
+            GL.UseProgram(0); //Clear
+        }
+
         public void SetUniform(string name, float v1, float v2)
         {
             var uniform = GetUniform(name);
