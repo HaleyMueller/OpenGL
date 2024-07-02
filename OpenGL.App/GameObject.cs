@@ -15,7 +15,6 @@ namespace OpenGL.App
 {
     public class GameObject : IDisposable
     {
-        public Vector3 Position;
         public ProjectionTypeEnum ProjectionType;
 
         public Texture2D Texture;
@@ -23,15 +22,29 @@ namespace OpenGL.App
         public VertexArray VertexArray;
         public IndexBuffer IndexBuffer;
 
+        public Vector3 Position;
+        public Vector3 Scale;
+        public Quaternion Rotation;
+
+        public Matrix4 ModelView
+        {
+            get
+            {
+                return Matrix4.CreateFromQuaternion(Rotation) * Matrix4.CreateScale(Scale) * Matrix4.CreateTranslation(Position);
+            }
+        }
+
         public enum ProjectionTypeEnum
         {
             Perspective,
             Orthographic
         }
 
-        public GameObject(Vector3 position, ProjectionTypeEnum projectionType, string shaderFactoryID, VertexBuffer[] vertexArray, int[] indices, Texture2D texture = null)
+        public GameObject(Vector3 position, Vector3 scale, Quaternion rotation, ProjectionTypeEnum projectionType, string shaderFactoryID, VertexBuffer[] vertexArray, int[] indices, Texture2D texture = null)
         {
             Position = position;
+            Scale = scale;
+            Rotation = rotation;
             ProjectionType = projectionType;
             Texture = texture;
             ShaderFactoryID = shaderFactoryID;
@@ -72,7 +85,7 @@ namespace OpenGL.App
 
     public class PlaneWithImage : GameObject
     {
-        public PlaneWithImage(Vector3 position, ProjectionTypeEnum projectionType, string shaderFile, VertexBuffer[] vertexArray, int[] indices, Texture2D texture = null) : base(position, projectionType, shaderFile, vertexArray, indices, texture)
+        public PlaneWithImage(Vector3 position, Vector3 scale, Quaternion rotation, ProjectionTypeEnum projectionType, string shaderFile, VertexBuffer[] vertexArray, int[] indices, Texture2D texture = null) : base(position, scale, rotation, projectionType, shaderFile, vertexArray, indices, texture)
         {
 
         }
