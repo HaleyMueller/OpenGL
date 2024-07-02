@@ -17,6 +17,7 @@ using OpenGL.App.Core.Vertex;
 using FmodAudio;
 using FmodAudio.DigitalSignalProcessing;
 using System.Diagnostics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace OpenGL.App
 {
@@ -28,6 +29,7 @@ namespace OpenGL.App
         private FreeTypeFont _font;
 
         private PlaneWithImage _gameObject;
+        private PlaneWithImage _gameObject2;
 
         public Game(int width = 1280, int height = 768) : base(
             GameWindowSettings.Default, 
@@ -45,6 +47,18 @@ namespace OpenGL.App
         {
             this.CenterWindow();
             _Game = this;
+            this.KeyDown += Game_KeyDown;
+            this.KeyUp += Game_KeyUp;
+        }
+
+        private void Game_KeyUp(KeyboardKeyEventArgs obj)
+        {
+
+        }
+
+        private void Game_KeyDown(KeyboardKeyEventArgs obj)
+        {
+            Console.WriteLine($"Key pressed: {obj.Key}");
         }
 
         protected override void OnResize(ResizeEventArgs e)
@@ -105,6 +119,7 @@ namespace OpenGL.App
             var _texture = TextureFactory.Instance.LoadTexture("C:\\tmp\\test.png");
 
             _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlot.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
+            _gameObject2 = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlot.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
 
             _font = new FreeTypeFont();
 
@@ -117,6 +132,7 @@ namespace OpenGL.App
         {
             //Removing everything
             _gameObject.Dispose();
+            _gameObject2.Dispose();
             ShaderFactory.Dispose();
 
             fmodSystem.Release();
@@ -124,9 +140,49 @@ namespace OpenGL.App
             base.OnUnload();
         }
 
+        KeyboardState keyboardState, lastKeyboardState;
+
+        Vector3 cameraPos = new Vector3(0, 0, 3f);
+        Vector3 cameraFront = new Vector3(0, 0, -1f);
+        Vector3 cameraUp = new Vector3(0, 1, 0);
+        Matrix4 view;
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
+            float cameraSpeed = (float)(1f * args.Time);
+            
+            if (_Game.IsKeyDown(Keys.W))
+            {
+                cameraPos += cameraSpeed * cameraFront;
+            }
+            else if (_Game.IsKeyDown(Keys.S))
+            {
+                cameraPos -= cameraSpeed * cameraFront;
+            }
+
+            if (_Game.IsKeyDown(Keys.A))
+            {
+                cameraPos -= Vector3.Normalize(Vector3.Cross(cameraFront, cameraUp)) * cameraSpeed;
+            }
+            else if (_Game.IsKeyDown(Keys.D))
+            {
+                cameraPos += Vector3.Normalize(Vector3.Cross(cameraFront, cameraUp)) * cameraSpeed;
+            }
+            //Console.WriteLine($"Camera pos: {cameraPos}");
+
+            view = Matrix4.LookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+            //Console.WriteLine($"Camera view: {view}");
+            //// Get current state
+            //keyboardState = OpenTK.Input.Hid. OpenTK.Input.Keyboard.GetState();
+
+            //// Check Key Presses
+            //if (KeyPress(Key.Right))
+            //    DoSomething();
+
+            //// Store current state for next comparison;
+            //lastKeyboardState = keyboardState;
+
             _gameObject.Update(args);
+            _gameObject2.Update(args);
 
             base.OnUpdateFrame(args);
         }
@@ -157,16 +213,45 @@ namespace OpenGL.App
             framesDuringLimit = (int)(timeSpans.Count() / limit.TotalSeconds);
             #endregion
 
-            GL.Clear(ClearBufferMask.ColorBufferBit); //Clear color buffer
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit); //Clear color buffer
 
+
+
+
+            //var cameraTarget = new Vector3(0, 0, 0);
+            //var cameraDirection = Vector3.Normalize(cameraPos - cameraTarget);
+            //var up = new Vector3(0, 1, 0);
+            //var cameraRight = Vector3.Normalize(Vector3.Cross(up, cameraDirection));
+            //var cameraUp = Vector3.Cross(cameraDirection, cameraRight);
+            //var view = Matrix4.LookAt(new Vector3(0, 0, 3), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            
+
+            //const float radius = 10.0f;
+            //float camX = (float)MathHelper.Sin(Stopwatch.Elapsed.TotalSeconds) * radius;
+            //float camZ = (float)MathHelper.Cos(Stopwatch.Elapsed.TotalSeconds) * radius;
+
+            //var view = Matrix4.LookAt(new Vector3(camX, 0, camZ), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
+            GL.Enable(EnableCap.DepthTest);
             Matrix4 model = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(-55f));
             //model = model * Matrix4.CreateRotationX((float)(Stopwatch.ElapsedMilliseconds * MathHelper.DegreesToRadians(1f) * 200));
-            Matrix4 view = Matrix4.CreateTranslation(0f, 0f, -5f);
+            //Matrix4 view = Matrix4.CreateTranslation(0f, 0f, -5f);
             Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), this.ClientSize.X / this.ClientSize.Y, .1f, 100f);
             ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("model", model);
             ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("view", view);
             ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("projection", projection);
             _gameObject.GPU_Use();
+
+            model = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(0));
+            model = model + Matrix4.CreateTranslation(new Vector3(1, 1, 1));
+            //model = model * Matrix4.CreateRotationX((float)(Stopwatch.ElapsedMilliseconds * MathHelper.DegreesToRadians(1f) * 200));
+            //Matrix4 view = Matrix4.CreateTranslation(0f, 0f, -5f);
+            projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), this.ClientSize.X / this.ClientSize.Y, .1f, 100f);
+            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("model", model);
+            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("view", view);
+            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("projection", projection);
+
+            _gameObject2.GPU_Use();
 
             GL.UseProgram(ShaderFactory.ShaderPrograms["TextShader.glsl"].ShaderProgramHandle);
             _font.RenderText($"FPS: {framesDuringLimit}", new Vector2(.5f, 12f), .25f, new Color4(1f, .8f, 1f, 1f));
