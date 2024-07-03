@@ -31,6 +31,7 @@ namespace OpenGL.App.Core
         float MovementSpeed;
         float MouseSensitivity;
         float Zoom;
+        float FOV = 45f;
 
         public enum Camera_Movement
         {
@@ -59,6 +60,11 @@ namespace OpenGL.App.Core
         public Matrix4 GetViewMatrix()
         {
             return Matrix4.LookAt(Position, Position + Front, Up);
+        }
+
+        public Matrix4 GetProjectionMatrix(int openGLWindowX, int openGLWindowY)
+        {
+            return Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FOV), openGLWindowX / openGLWindowY, .01f, 100f);
         }
 
         public void ProcessKeyboard(Camera_Movement direction, float deltaTime)

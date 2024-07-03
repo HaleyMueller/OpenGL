@@ -57,7 +57,6 @@ namespace OpenGL.App
         {
             if (this.CursorState == CursorState.Grabbed)
             {
-                //Console.WriteLine($"Mouse DeltaX: {obj.DeltaX} DeltaY: {obj.DeltaY}");
                 MainCamera.ProcessMouseMovement(obj.DeltaX, obj.DeltaY);
             }
         }
@@ -66,8 +65,6 @@ namespace OpenGL.App
         {
             GL.Viewport(0, 0, e.Width, e.Height);
             base.OnResize(e);
-
-            projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), this.ClientSize.X / this.ClientSize.Y, .1f, 100f);
         }
 
         bool rainbowImage = false;
@@ -128,8 +125,6 @@ namespace OpenGL.App
 
             Stopwatch.Start();
 
-            projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), this.ClientSize.X / this.ClientSize.Y, .1f, 100f);
-
             GL.Enable(EnableCap.DepthTest);
 
             base.OnLoad();
@@ -176,8 +171,6 @@ namespace OpenGL.App
 
         Stopwatch Stopwatch = new Stopwatch();
 
-        Matrix4 projection;
-
         protected override void OnRenderFrame(FrameEventArgs args)
         {
             fmodSystem.Update();
@@ -198,12 +191,11 @@ namespace OpenGL.App
             framesDuringLimit = (int)(timeSpans.Count() / limit.TotalSeconds);
             #endregion
 
-            Console.WriteLine($"Camera Pos: {MainCamera.Position} Camera Front: {MainCamera.Front} Big Pos: {_gameObject.Position}");
-
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit); //Clear color buffer
 
             ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("view", MainCamera.GetViewMatrix()); //TODO put view and projection in Camera.cs
-            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("projection", projection);
+            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("projection", MainCamera.GetProjectionMatrix(this.ClientSize.X, this.ClientSize.Y));
+
             ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("model", _gameObject.ModelView);
             _gameObject.GPU_Use();
             ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("model", _gameObject2.ModelView);
