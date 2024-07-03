@@ -19,6 +19,7 @@ using FmodAudio.DigitalSignalProcessing;
 using System.Diagnostics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenGL.App.Core;
+using OpenGL.App.Core.UniformBufferObject;
 
 namespace OpenGL.App
 {
@@ -28,6 +29,7 @@ namespace OpenGL.App
 
         public Camera MainCamera;
 
+        public UniformBufferObjectFactory UBOFactory { get; private set; }
         public ShaderFactory ShaderFactory { get; private set; }
         private FreeTypeFont _font;
 
@@ -87,6 +89,7 @@ namespace OpenGL.App
 
             GL.ClearColor(Color4.DarkCyan); //Set up clear color
 
+            UBOFactory = new UniformBufferObjectFactory();
             ShaderFactory = new ShaderFactory();
 
             Resources.Shaders.VertexPositionTexture[] vertices = new Resources.Shaders.VertexPositionTexture[]
@@ -118,7 +121,7 @@ namespace OpenGL.App
 
             var _texture = TextureFactory.Instance.LoadTexture("C:\\tmp\\test.png");
 
-            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlot.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
+            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBO.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
             _gameObject2 = new PlaneWithImage(new Vector3(0.7f, -.75f, 0.5f), new Vector3(1, .4f, 1), Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlot.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
 
             _font = new FreeTypeFont();
@@ -193,12 +196,19 @@ namespace OpenGL.App
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit); //Clear color buffer
 
-            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("view", MainCamera.GetViewMatrix()); //TODO put view and projection in Camera.cs
-            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("projection", MainCamera.GetProjectionMatrix(this.ClientSize.X, this.ClientSize.Y));
+            var shaderBlockIndex = GL.GetUniformBlockIndex(ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].ShaderProgramHandle, "Matrices");
+            GL.UniformBlockBinding(ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].ShaderProgramHandle, shaderBlockIndex, 0);
+
+            //Load up and set data for the Projection/View Matrix ubo
+            UniformBufferObjectFactory.UniformBufferObjects[UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix].GPU_Use();
+
+
 
             ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("model", _gameObject.ModelView);
             _gameObject.GPU_Use();
-            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("model", _gameObject2.ModelView);
+            ShaderFactory.ShaderPrograms[_gameObject2.ShaderFactoryID].SetUniform("view", MainCamera.GetViewMatrix()); //TODO put view and projection in Camera.cs
+            ShaderFactory.ShaderPrograms[_gameObject2.ShaderFactoryID].SetUniform("projection", MainCamera.GetProjectionMatrix(this.ClientSize.X, this.ClientSize.Y));
+            ShaderFactory.ShaderPrograms[_gameObject2.ShaderFactoryID].SetUniform("model", _gameObject2.ModelView);
             _gameObject2.GPU_Use();
 
             GL.UseProgram(ShaderFactory.ShaderPrograms["TextShader.glsl"].ShaderProgramHandle);
