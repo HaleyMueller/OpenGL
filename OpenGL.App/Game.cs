@@ -18,12 +18,15 @@ using FmodAudio;
 using FmodAudio.DigitalSignalProcessing;
 using System.Diagnostics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using OpenGL.App.Core;
 
 namespace OpenGL.App
 {
     public class Game : GameWindow
     {
         public static Game _Game;
+
+        public Camera MainCamera;
 
         public ShaderFactory ShaderFactory { get; private set; }
         private FreeTypeFont _font;
@@ -47,18 +50,16 @@ namespace OpenGL.App
         {
             this.CenterWindow();
             _Game = this;
-            this.KeyDown += Game_KeyDown;
-            this.KeyUp += Game_KeyUp;
+            this.MouseMove += Game_MouseMove;
         }
 
-        private void Game_KeyUp(KeyboardKeyEventArgs obj)
+        private void Game_MouseMove(MouseMoveEventArgs obj)
         {
-
-        }
-
-        private void Game_KeyDown(KeyboardKeyEventArgs obj)
-        {
-            Console.WriteLine($"Key pressed: {obj.Key}");
+            if (this.CursorState == CursorState.Grabbed)
+            {
+                //Console.WriteLine($"Mouse DeltaX: {obj.DeltaX} DeltaY: {obj.DeltaY}");
+                MainCamera.ProcessMouseMovement(obj.DeltaX, obj.DeltaY);
+            }
         }
 
         protected override void OnResize(ResizeEventArgs e)
@@ -85,7 +86,7 @@ namespace OpenGL.App
             sound = fmodSystem.CreateSound("Resources/Sounds/close_door_metal.ogg");
             //fmodSystem.PlaySound(sound);
 
-
+            MainCamera = new Camera(new Vector3(0, 0, 3f), null);
 
             GL.ClearColor(Color4.DarkCyan); //Set up clear color
 
@@ -146,35 +147,22 @@ namespace OpenGL.App
             base.OnUnload();
         }
 
-        KeyboardState keyboardState, lastKeyboardState;
-
-        Vector3 cameraPos = new Vector3(0, 0, 3f);
-        Vector3 cameraFront = new Vector3(0, 0, -1f);
-        Vector3 cameraUp = new Vector3(0, 1, 0);
-        Matrix4 view;
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
             float cameraSpeed = (float)(1f * args.Time);
             
+            if (_Game.IsKeyPressed(Keys.Escape))
+                this.CursorState = this.CursorState == CursorState.Grabbed ? CursorState.Normal : CursorState.Grabbed;
+
             if (_Game.IsKeyDown(Keys.W))
-            {
-                cameraPos += cameraSpeed * cameraFront;
-            }
+                MainCamera.ProcessKeyboard(Camera.Camera_Movement.FORWARD, (float)args.Time);
             else if (_Game.IsKeyDown(Keys.S))
-            {
-                cameraPos -= cameraSpeed * cameraFront;
-            }
+                MainCamera.ProcessKeyboard(Camera.Camera_Movement.BACKWARD, (float)args.Time);
 
             if (_Game.IsKeyDown(Keys.A))
-            {
-                cameraPos -= Vector3.Normalize(Vector3.Cross(cameraFront, cameraUp)) * cameraSpeed;
-            }
+                MainCamera.ProcessKeyboard(Camera.Camera_Movement.LEFT, (float)args.Time);
             else if (_Game.IsKeyDown(Keys.D))
-            {
-                cameraPos += Vector3.Normalize(Vector3.Cross(cameraFront, cameraUp)) * cameraSpeed;
-            }
-
-            view = Matrix4.LookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+                MainCamera.ProcessKeyboard(Camera.Camera_Movement.RIGHT, (float)args.Time);
 
             _gameObject.Update(args);
             _gameObject2.Update(args);
@@ -210,9 +198,11 @@ namespace OpenGL.App
             framesDuringLimit = (int)(timeSpans.Count() / limit.TotalSeconds);
             #endregion
 
+            Console.WriteLine($"Camera Pos: {MainCamera.Position} Camera Front: {MainCamera.Front} Big Pos: {_gameObject.Position}");
+
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit); //Clear color buffer
 
-            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("view", view); //TODO put view and projection in Camera.cs
+            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("view", MainCamera.GetViewMatrix()); //TODO put view and projection in Camera.cs
             ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("projection", projection);
             ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("model", _gameObject.ModelView);
             _gameObject.GPU_Use();
