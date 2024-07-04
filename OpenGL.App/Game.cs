@@ -36,6 +36,8 @@ namespace OpenGL.App
         private PlaneWithImage _gameObject;
         private PlaneWithImage _gameObject2;
 
+        public TextureArray TextureArray;
+
         public Game(int width = 1280, int height = 768) : base(
             GameWindowSettings.Default, 
             new NativeWindowSettings()
@@ -92,6 +94,8 @@ namespace OpenGL.App
             UBOFactory = new UniformBufferObjectFactory();
             ShaderFactory = new ShaderFactory();
 
+            TextureArray = new TextureArray("Resources/Textures");
+
             Resources.Shaders.VertexPositionTexture[] vertices = new Resources.Shaders.VertexPositionTexture[]
                 {
                 new Resources.Shaders.VertexPositionTexture(new Vector2(.5f, .5f), new Vector2(1, 1)),
@@ -102,9 +106,9 @@ namespace OpenGL.App
 
             Resources.Shaders.VertexColor[] verticesColor = new Resources.Shaders.VertexColor[]
             {
-                new Resources.Shaders.VertexColor(new Color4(1f, 0f, 0f, 1f)),
-                new Resources.Shaders.VertexColor(new Color4(0f, 1f, 0f, 1f)),
-                new Resources.Shaders.VertexColor(new Color4(0f, 0f, 1f, 1f)),
+                new Resources.Shaders.VertexColor(new Color4(1f, 1f, 1f, 1f)),
+                new Resources.Shaders.VertexColor(new Color4(1f, 1f, 1f, 1f)),
+                new Resources.Shaders.VertexColor(new Color4(1f, 1f, 1f, 1f)),
                 new Resources.Shaders.VertexColor(new Color4(1f, 1f, 1f, 1f))
             };
 
@@ -121,7 +125,7 @@ namespace OpenGL.App
 
             var _texture = TextureFactory.Instance.LoadTexture("C:\\tmp\\test.png");
 
-            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBO.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
+            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBOAtlas.glsl", new VertexBuffer[] { vertexBuffer }, indices, null);
             _gameObject.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
             _gameObject2 = new PlaneWithImage(new Vector3(0.7f, -.75f, 0.5f), new Vector3(1, .4f, 1), Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBO.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
             _gameObject2.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
@@ -202,6 +206,7 @@ namespace OpenGL.App
             UniformBufferObjectFactory.UniformBufferObjects[UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix].GPU_Use();
 
             //Draw Objects
+            
             _gameObject.GPU_Use();
             _gameObject2.GPU_Use();
 

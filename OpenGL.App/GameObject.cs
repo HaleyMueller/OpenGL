@@ -68,6 +68,8 @@ namespace OpenGL.App
             
             if (Texture != null)
                 Texture.Use();
+            else
+                Game._Game.TextureArray.Use();
 
             GPU_Use_Vertex();
         }
@@ -157,7 +159,7 @@ namespace OpenGL.App
                 copiedVertColor[i].Color.B *= colorFactor;
             }
 
-            base.VertexArray.VertexBuffer["Color"].SetData(copiedVertColor, copiedVertColor.Length);
+            //base.VertexArray.VertexBuffer["Color"].SetData(copiedVertColor, copiedVertColor.Length);
         }
     }
 }
