@@ -122,8 +122,9 @@ namespace OpenGL.App
             var _texture = TextureFactory.Instance.LoadTexture("C:\\tmp\\test.png");
 
             _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBO.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
-            _gameObject.UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
-            _gameObject2 = new PlaneWithImage(new Vector3(0.7f, -.75f, 0.5f), new Vector3(1, .4f, 1), Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlot.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
+            _gameObject.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
+            _gameObject2 = new PlaneWithImage(new Vector3(0.7f, -.75f, 0.5f), new Vector3(1, .4f, 1), Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBO.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
+            _gameObject2.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
 
             _font = new FreeTypeFont();
 
@@ -200,11 +201,8 @@ namespace OpenGL.App
             //Load up and set data for the Projection/View Matrix ubo
             UniformBufferObjectFactory.UniformBufferObjects[UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix].GPU_Use();
 
-            ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("model", _gameObject.ModelView);
+            //Draw Objects
             _gameObject.GPU_Use();
-            ShaderFactory.ShaderPrograms[_gameObject2.ShaderFactoryID].SetUniform("view", MainCamera.GetViewMatrix()); //TODO put view and projection in Camera.cs
-            ShaderFactory.ShaderPrograms[_gameObject2.ShaderFactoryID].SetUniform("projection", MainCamera.GetProjectionMatrix(this.ClientSize.X, this.ClientSize.Y));
-            ShaderFactory.ShaderPrograms[_gameObject2.ShaderFactoryID].SetUniform("model", _gameObject2.ModelView);
             _gameObject2.GPU_Use();
 
             GL.UseProgram(ShaderFactory.ShaderPrograms["TextShader.glsl"].ShaderProgramHandle);

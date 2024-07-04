@@ -28,8 +28,6 @@ namespace OpenGL.App
         public Vector3 Scale;
         public Quaternion Rotation;
 
-        public List<UniformBufferObjectFactory.UBOIndex> UsedUBOs = new List<UniformBufferObjectFactory.UBOIndex>();
-
         public Matrix4 ModelView
         {
             get
@@ -59,19 +57,29 @@ namespace OpenGL.App
             this.IndexBuffer.SetData(indices, indices.Length);
         }
 
+        public ShaderProgram GetShaderProgram()
+        {
+            return ShaderFactory.ShaderPrograms[this.ShaderFactoryID];
+        }
+
         public void GPU_Use()
         {
-            foreach (var ubo in this.UsedUBOs)
-            {
-                var shaderBlockIndex = GL.GetUniformBlockIndex(ShaderFactory.ShaderPrograms[this.ShaderFactoryID].ShaderProgramHandle, ubo.ToString());
-                GL.UniformBlockBinding(ShaderFactory.ShaderPrograms[this.ShaderFactoryID].ShaderProgramHandle, shaderBlockIndex, (int)ubo);
-            }
-
-            GL.UseProgram(ShaderFactory.ShaderPrograms[this.ShaderFactoryID].ShaderProgramHandle); //Use shader program
+            GPU_Use_Shader();
             
             if (Texture != null)
                 Texture.Use();
-            
+
+            GPU_Use_Vertex();
+        }
+
+
+        internal virtual void GPU_Use_Shader()
+        {
+            GetShaderProgram().Use(); //Use shader program
+        }
+
+        private void GPU_Use_Vertex()
+        {
             GL.BindVertexArray(this.VertexArray.VertexArrayHandle); //Use vertex array handle to grab the vec3's variable
 
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, this.IndexBuffer.IndexBufferHandle); //Use indices array linked to vertex array above
@@ -110,6 +118,12 @@ namespace OpenGL.App
             new Resources.Shaders.VertexColor(new Color4(0f, 0f, 1f, 1f)),
             new Resources.Shaders.VertexColor(new Color4(1f, 1f, 1f, 1f))
         };
+
+        internal override void GPU_Use_Shader()
+        {
+            GetShaderProgram().SetUniform("model", this.ModelView);
+            base.GPU_Use_Shader();
+        }
 
         public void Update(FrameEventArgs args)
         {

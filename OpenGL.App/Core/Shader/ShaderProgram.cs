@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenGL.App.Core.UniformBufferObject;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
@@ -40,6 +41,8 @@ namespace OpenGL.App.Core.Shader
     {
         private bool disposed;
 
+        public List<UniformBufferObjectFactory.UBOIndex> UsedUBOs = new List<UniformBufferObjectFactory.UBOIndex>();
+
         public readonly int ShaderProgramHandle;
         public readonly int VertexShaderHandle;
         public readonly int PixelShaderHandle;
@@ -72,6 +75,15 @@ namespace OpenGL.App.Core.Shader
         public void Use()
         {
             GL.UseProgram(ShaderProgramHandle);
+        }
+
+        internal void GPU_Use_UBOS()
+        {
+            foreach (var ubo in this.UsedUBOs)
+            {
+                var shaderBlockIndex = GL.GetUniformBlockIndex(ShaderProgramHandle, ubo.ToString());
+                GL.UniformBlockBinding(ShaderProgramHandle, shaderBlockIndex, (int)ubo);
+            }
         }
 
         #region OpenGL
