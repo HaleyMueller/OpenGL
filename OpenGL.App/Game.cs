@@ -122,6 +122,7 @@ namespace OpenGL.App
             var _texture = TextureFactory.Instance.LoadTexture("C:\\tmp\\test.png");
 
             _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBO.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
+            _gameObject.UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
             _gameObject2 = new PlaneWithImage(new Vector3(0.7f, -.75f, 0.5f), new Vector3(1, .4f, 1), Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlot.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
 
             _font = new FreeTypeFont();
@@ -196,13 +197,8 @@ namespace OpenGL.App
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit); //Clear color buffer
 
-            var shaderBlockIndex = GL.GetUniformBlockIndex(ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].ShaderProgramHandle, "Matrices");
-            GL.UniformBlockBinding(ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].ShaderProgramHandle, shaderBlockIndex, 0);
-
             //Load up and set data for the Projection/View Matrix ubo
             UniformBufferObjectFactory.UniformBufferObjects[UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix].GPU_Use();
-
-
 
             ShaderFactory.ShaderPrograms[_gameObject.ShaderFactoryID].SetUniform("model", _gameObject.ModelView);
             _gameObject.GPU_Use();

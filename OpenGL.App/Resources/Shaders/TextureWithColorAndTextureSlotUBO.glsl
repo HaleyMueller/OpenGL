@@ -5,7 +5,7 @@ layout (location = 0) in vec2 Position; //attribute variables start with 'a'. at
 layout (location = 1) in vec2 TexCoord;
 layout (location = 2) in vec4 Color;
 
-layout (std140) uniform Matrices
+layout (std140) uniform ProjectionViewMatrix
 {
     mat4 projection;
     mat4 view;

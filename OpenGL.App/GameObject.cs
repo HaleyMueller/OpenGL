@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using OpenGL.App.Core;
 using OpenGL.App.Core.Shader;
 using OpenGL.App.Core.Texture;
+using OpenGL.App.Core.UniformBufferObject;
 using OpenGL.App.Core.Vertex;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
+using static OpenGL.App.Core.UniformBufferObject.UniformBufferObjectFactory;
 
 namespace OpenGL.App
 {
@@ -25,6 +27,8 @@ namespace OpenGL.App
         public Vector3 Position;
         public Vector3 Scale;
         public Quaternion Rotation;
+
+        public List<UniformBufferObjectFactory.UBOIndex> UsedUBOs = new List<UniformBufferObjectFactory.UBOIndex>();
 
         public Matrix4 ModelView
         {
@@ -57,6 +61,12 @@ namespace OpenGL.App
 
         public void GPU_Use()
         {
+            foreach (var ubo in this.UsedUBOs)
+            {
+                var shaderBlockIndex = GL.GetUniformBlockIndex(ShaderFactory.ShaderPrograms[this.ShaderFactoryID].ShaderProgramHandle, ubo.ToString());
+                GL.UniformBlockBinding(ShaderFactory.ShaderPrograms[this.ShaderFactoryID].ShaderProgramHandle, shaderBlockIndex, (int)ubo);
+            }
+
             GL.UseProgram(ShaderFactory.ShaderPrograms[this.ShaderFactoryID].ShaderProgramHandle); //Use shader program
             
             if (Texture != null)
