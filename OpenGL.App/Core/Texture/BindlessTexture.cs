@@ -16,10 +16,13 @@ namespace OpenGL.App.Core.Texture
         public int TextureGroupHandle;
         public List<BindlessTextureHandle> BindlessTextureHandles { get; set; } = new List<BindlessTextureHandle>();
 
+        public string[] TextureFiles { get; set; }
+
         public class BindlessTextureHandle
         {
             public long BindlessHandle;
             public int TextureHandle;
+            //public string FileName;
         }
 
         public BindlessTexture(string directory)
@@ -42,10 +45,15 @@ namespace OpenGL.App.Core.Texture
         {
             var files = Directory.GetFiles(directory, "*.png");
 
+            TextureFiles = new string[files.Length];
+            int i = 0;
             foreach (var file in files)
             {
                 var bindlessTextureHandle = new BindlessTextureHandle();
 
+                TextureFiles[i] = file;
+
+                //bindlessTextureHandle.FileName = file;
                 bindlessTextureHandle.TextureHandle = GL.GenTexture();
                 GL.BindTexture(TextureTarget.Texture2D, bindlessTextureHandle.TextureHandle);
 
@@ -67,6 +75,7 @@ namespace OpenGL.App.Core.Texture
                 GL.BindTexture(TextureTarget.Texture2D, 0);
 
                 BindlessTextureHandles.Add(bindlessTextureHandle);
+                i++;
             }
         }
 
@@ -77,16 +86,16 @@ namespace OpenGL.App.Core.Texture
 
         public override void Dispose()
         {
-            if (_disposed) return;
+            //if (_disposed) return;
 
-            _disposed = true;
-            foreach (var textureHandle in this.BindlessTextureHandles)
-            {
-                GL.Arb.MakeTextureHandleNonResident(textureHandle.BindlessHandle);
-                GL.DeleteTexture(textureHandle.TextureHandle);
-            }
+            //_disposed = true;
+            //foreach (var textureHandle in this.BindlessTextureHandles)
+            //{
+            //    GL.Arb.MakeTextureHandleNonResident(textureHandle.BindlessHandle);
+            //    GL.DeleteTexture(textureHandle.TextureHandle);
+            //}
 
-            GC.SuppressFinalize(this);
+            //GC.SuppressFinalize(this);
         }
 
         public override void GPU_Use(TextureData textureData)
@@ -96,6 +105,5 @@ namespace OpenGL.App.Core.Texture
 
             GL.Arb.UniformHandle(textureData.ShaderUniformLocation.Value, BindlessTextureHandles[textureData.SelectedTexture.Value].BindlessHandle);
         }
-
     }
 }

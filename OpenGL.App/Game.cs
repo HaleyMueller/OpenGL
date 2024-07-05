@@ -20,6 +20,7 @@ using System.Diagnostics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenGL.App.Core;
 using OpenGL.App.Core.UniformBufferObject;
+using System.Security.Cryptography.X509Certificates;
 
 namespace OpenGL.App
 {
@@ -79,16 +80,28 @@ namespace OpenGL.App
         FmodAudio.Sound sound;
 
         public bool IsBindlessSupported;
+        public int MaxArrayTextureLayers;
+
+        public TileFactory TileFactory;
+        public TileFactory.TileTextureFactory TileTextureFactory;
+
+        public Tile Tile;
 
         protected override void OnLoad()
         {
             IsBindlessSupported = IsBindlessTextureSupported();
+            // Query the maximum number of array texture layers
+            MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
 
             #if DEBUG
             IsBindlessSupported = false;
+            //MaxArrayTextureLayers = 2;
             #endif
 
+
             this.IsVisible = true;
+
+
 
             fmodSystem = FmodAudio.Fmod.CreateSystem();
             fmodSystem.Init(32, FmodAudio.InitFlags.Normal);
@@ -103,8 +116,14 @@ namespace OpenGL.App
             UBOFactory = new UniformBufferObjectFactory();
             ShaderFactory = new ShaderFactory();
 
-            TextureArray = new TextureArray("Resources/Textures");
-            BindlessTexture = new BindlessTexture("Resources/Textures");
+
+            TileFactory = new TileFactory();
+            TileTextureFactory = new TileFactory.TileTextureFactory(TileFactory);
+
+
+
+
+
 
             Resources.Shaders.VertexPositionTexture[] vertices = new Resources.Shaders.VertexPositionTexture[]
                 {
@@ -138,9 +157,15 @@ namespace OpenGL.App
             _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "Tile.glsl", new VertexBuffer[] { vertexBuffer }, indices);
             _gameObject.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
             if (IsBindlessSupported) //Create bindless textures
+            {
+                BindlessTexture = new BindlessTexture("Resources/Textures");
                 _gameObject.AddTexture(BindlessTexture, new Texture.TextureData() { SelectedTexture = 1, ShaderUniformLocation = _gameObject.GetShaderProgram().GetUniform("bindlessTexture").Location });
+            }
             else //Create texture array
+            {
+                TextureArray = new TextureArray("Resources/Textures");
                 _gameObject.AddTexture(TextureArray, new Texture.TextureData() { SetUniformOnAdd = new Dictionary<string, float> { { "selectedTexture", 0 } } });
+            }
             
             _gameObject2 = new PlaneWithImage(new Vector3(0.7f, -.75f, 0.5f), new Vector3(1, .4f, 1), Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBO.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices);
             _gameObject2.AddTexture(_texture, new Texture.TextureData());
@@ -149,6 +174,12 @@ namespace OpenGL.App
             _font = new FreeTypeFont();
 
             Stopwatch.Start();
+
+
+            Tile = new Tile(new Vector3(0.1f, 0.1f, 0.1f), Vector3.One, Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "Tile.glsl", new VertexBuffer[] { vertexBuffer }, indices);
+            Tile.SetTileID(3);
+
+
 
             GL.Enable(EnableCap.DepthTest);
 
@@ -239,6 +270,7 @@ namespace OpenGL.App
 
             _gameObject.GPU_Use();
             _gameObject2.GPU_Use();
+            Tile.GPU_Use();
 
             GL.UseProgram(ShaderFactory.ShaderPrograms["TextShader.glsl"].ShaderProgramHandle);
             _font.RenderText($"FPS: {framesDuringLimit}", new Vector2(.5f, 12f), .25f, new Color4(1f, .8f, 1f, 1f));

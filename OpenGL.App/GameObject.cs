@@ -11,6 +11,8 @@ using OpenGL.App.Core.Vertex;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using static OpenGL.App.Core.TileFactory;
 using static OpenGL.App.Core.UniformBufferObject.UniformBufferObjectFactory;
 
 namespace OpenGL.App
@@ -28,6 +30,8 @@ namespace OpenGL.App
         public Vector3 Scale;
         public Quaternion Rotation;
 
+        public ShaderProgram ShaderProgram;
+
         public Matrix4 ModelView
         {
             get
@@ -43,6 +47,20 @@ namespace OpenGL.App
         }
 
         public Dictionary<int, Texture.TextureData> TextureDatas = new Dictionary<int, Texture.TextureData>();
+
+        public GameObject(Vector3 position, Vector3 scale, Quaternion rotation, ProjectionTypeEnum projectionType, ShaderProgram shaderFactoryID, VertexBuffer[] vertexArray, int[] indices)
+        {
+            Position = position;
+            Scale = scale;
+            Rotation = rotation;
+            ProjectionType = projectionType;
+            ShaderProgram = shaderFactoryID;
+
+            VertexArray = new VertexArray(vertexArray, shaderFactoryID.ShaderProgramHandle);
+
+            this.IndexBuffer = new IndexBuffer(indices.Length, true);
+            this.IndexBuffer.SetData(indices, indices.Length);
+        }
 
         public GameObject(Vector3 position, Vector3 scale, Quaternion rotation, ProjectionTypeEnum projectionType, string shaderFactoryID, VertexBuffer[] vertexArray, int[] indices)
         {
@@ -73,13 +91,24 @@ namespace OpenGL.App
 
         public ShaderProgram GetShaderProgram()
         {
+            if (ShaderProgram != null) 
+                return ShaderProgram;
+
             return ShaderFactory.ShaderPrograms[this.ShaderFactoryID];
         }
 
         public void GPU_Use()
         {
+            foreach (Texture.TextureData textureData in this.TextureDatas.Values)
+            {
+                foreach (var uniformKVP in textureData.SetUniformOnAdd)
+                {
+                    GetShaderProgram().SetUniform(uniformKVP.Key, uniformKVP.Value);
+                }
+            }
+
             GPU_Use_Shader();
-            
+
             foreach (var texture in  this.Textures)
             {
                 var textureIndex = this.Textures.IndexOf(texture);
@@ -124,6 +153,11 @@ namespace OpenGL.App
 
     public class PlaneWithImage : GameObject
     {
+        public PlaneWithImage(Vector3 position, Vector3 scale, Quaternion rotation, ProjectionTypeEnum projectionType, ShaderProgram shaderFile, VertexBuffer[] vertexArray, int[] indices) : base(position, scale, rotation, projectionType, shaderFile, vertexArray, indices)
+        {
+
+        }
+
         public PlaneWithImage(Vector3 position, Vector3 scale, Quaternion rotation, ProjectionTypeEnum projectionType, string shaderFile, VertexBuffer[] vertexArray, int[] indices) : base(position, scale, rotation, projectionType, shaderFile, vertexArray, indices)
         {
 
@@ -179,6 +213,45 @@ namespace OpenGL.App
             }
 
             //base.VertexArray.VertexBuffer["Color"].SetData(copiedVertColor, copiedVertColor.Length);
+        }
+    }
+
+    public class Tile : GameObject
+    {
+        private int TileID;
+        private Texture.TextureData TextureData;
+
+        public Tile(Vector3 position, Vector3 scale, Quaternion rotation, ProjectionTypeEnum projectionType, string shaderFactoryID, VertexBuffer[] vertexArray, int[] indices) : base(position, scale, rotation, projectionType, shaderFactoryID, vertexArray, indices)
+        {
+        }
+
+        public void SetTileID(int tileID)
+        {
+            TileID = tileID;
+
+            TextureData = new Texture.TextureData() { SelectedTexture = tileID };
+
+            if (Game._Game.IsBindlessSupported)
+            {
+                TextureData.ShaderUniformLocation = GetShaderProgram().GetUniform("bindlessTexture").Location;
+            }
+            else
+            {
+                GetShaderProgram().SetUniform("selectedTexture", tileID);
+            }
+        }
+
+        public int GetileID()
+        {
+            return TileID;
+        }
+
+        internal override void GPU_Use_Shader()
+        {
+            GetShaderProgram().SetUniform("model", this.ModelView);
+
+            Game._Game.TileTextureFactory.GPU_Use(TileID, GetShaderProgram(), TextureData);
+            base.GPU_Use_Shader();
         }
     }
 }

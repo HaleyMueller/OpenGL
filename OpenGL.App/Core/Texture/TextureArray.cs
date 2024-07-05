@@ -14,9 +14,11 @@ namespace OpenGL.App.Core.Texture
     {
         public int TextureHandle { get; private set; }
 
-        public TextureArray(string directory)
+        public string[] TextureFiles { get; set; }
+
+        public TextureArray(string directory, int? max = null, int offset = 0)
         {
-            Bitmap[] bitmaps = LoadImages(directory);
+            Bitmap[] bitmaps = LoadImages(directory, max, offset);
 
             // Generate the texture array
             TextureHandle = GL.GenTexture();
@@ -70,13 +72,21 @@ namespace OpenGL.App.Core.Texture
             GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
         }
 
-        public static Bitmap[] LoadImages(string directory)
+        public Bitmap[] LoadImages(string directory, int? max = null, int offset = 0)
         {
             string[] files = Directory.GetFiles(directory, "*.png");
+
+            if (max.HasValue)
+                files = files.Skip(offset).Take(max.GetValueOrDefault()).ToArray();
+            else
+                files = files.Skip(offset).ToArray();
+
             Bitmap[] bitmaps = new Bitmap[files.Length];
 
+            TextureFiles = new string[bitmaps.Length];
             for (int i = 0; i < files.Length; i++)
             {
+                TextureFiles[i] = files[i];
                 bitmaps[i] = new Bitmap(files[i]);
             }
 
@@ -90,12 +100,12 @@ namespace OpenGL.App.Core.Texture
 
         public override void Dispose()
         {
-            if (_disposed) return;
+            //if (_disposed) return;
 
-            _disposed = true;
-            GL.DeleteTexture(TextureHandle);
+            //_disposed = true;
+            //GL.DeleteTexture(TextureHandle);
 
-            GC.SuppressFinalize(this);
+            //GC.SuppressFinalize(this);
         }
 
         public override void GPU_Use(TextureData textureData)
