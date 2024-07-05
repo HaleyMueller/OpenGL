@@ -68,8 +68,8 @@ namespace OpenGL.App
             
             if (Texture != null)
                 Texture.Use();
-            else
-                Game._Game.TextureArray.Use();
+            //else
+            //    Game._Game.TextureArray.Use();
 
             GPU_Use_Vertex();
         }

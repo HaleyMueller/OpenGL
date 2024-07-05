@@ -37,6 +37,7 @@ namespace OpenGL.App
         private PlaneWithImage _gameObject2;
 
         public TextureArray TextureArray;
+        public BindlessTexture BindlessTexture;
 
         public Game(int width = 1280, int height = 768) : base(
             GameWindowSettings.Default, 
@@ -95,6 +96,7 @@ namespace OpenGL.App
             ShaderFactory = new ShaderFactory();
 
             TextureArray = new TextureArray("Resources/Textures");
+            BindlessTexture = new BindlessTexture("Resources/Textures");
 
             Resources.Shaders.VertexPositionTexture[] vertices = new Resources.Shaders.VertexPositionTexture[]
                 {
@@ -125,7 +127,7 @@ namespace OpenGL.App
 
             var _texture = TextureFactory.Instance.LoadTexture("C:\\tmp\\test.png");
 
-            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBOAtlas.glsl", new VertexBuffer[] { vertexBuffer }, indices, null);
+            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBOBindless.glsl", new VertexBuffer[] { vertexBuffer }, indices, null);
             _gameObject.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
             _gameObject2 = new PlaneWithImage(new Vector3(0.7f, -.75f, 0.5f), new Vector3(1, .4f, 1), Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBO.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
             _gameObject2.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
@@ -206,7 +208,11 @@ namespace OpenGL.App
             UniformBufferObjectFactory.UniformBufferObjects[UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix].GPU_Use();
 
             //Draw Objects
-            
+
+            // Select a bindless texture to use (example: first texture)
+            long selectedTexture = BindlessTexture.TextureHandles[1];
+            int bindlessTextureUniform = GL.GetUniformLocation(_gameObject.GetShaderProgram().ShaderProgramHandle, "bindlessTexture");
+            GL.Arb.ProgramUniformHandle(_gameObject.GetShaderProgram().ShaderProgramHandle, bindlessTextureUniform, selectedTexture);
             _gameObject.GPU_Use();
             _gameObject2.GPU_Use();
 
