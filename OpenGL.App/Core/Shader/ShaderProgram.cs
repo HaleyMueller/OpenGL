@@ -310,7 +310,19 @@ namespace OpenGL.App.Core.Shader
                 }
 
                 vertexShader = sbVertex.ToString();
+
                 pixelShader = sbPixel.ToString();
+
+                if (Game._Game.IsBindlessSupported)
+                {
+                    pixelShader = pixelShader.Replace("#BindlessFallbackCreateUniform", "uniform sampler2D bindlessTexture;");
+                    pixelShader = pixelShader.Replace("#BindlessFallbackCreateTexture", "texture(bindlessTexture, f_uv);");
+                }
+                else
+                {
+                    pixelShader = pixelShader.Replace("#BindlessFallbackCreateUniform", "uniform sampler2DArray u_tex;\r\nuniform float selectedTexture;");
+                    pixelShader = pixelShader.Replace("#BindlessFallbackCreateTexture", " texture(u_tex, vec3(f_uv.x, f_uv.y, selectedTexture));");
+                }
 
                 if (string.IsNullOrEmpty(vertexShader) || string.IsNullOrEmpty(pixelShader))
                 {

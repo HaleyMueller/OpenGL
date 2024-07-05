@@ -143,7 +143,7 @@ namespace OpenGL.App
                 Character ch = _characters[c];
 
                 float xpos = screenCoordinates.X + ch.Bearing.X * scale;
-                float ypos = screenCoordinates.Y - (ch.Size.Y - ch.Bearing.Y) * scale;
+                float ypos = screenCoordinates.Y + (ch.Size.Y - ch.Bearing.Y) * scale;
 
                 float w = ch.Size.X * scale;
                 float h = ch.Size.Y * scale;

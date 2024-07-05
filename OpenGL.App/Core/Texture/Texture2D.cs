@@ -7,9 +7,8 @@ using OpenTK.Graphics.OpenGL;
 
 namespace OpenGL.App.Core.Texture
 {
-    public class Texture2D : IDisposable
+    public class Texture2D : Texture
     {
-        private bool _disposed;
         public int Handle { get; private set; }
 
         public Texture2D(int handle)
@@ -17,7 +16,7 @@ namespace OpenGL.App.Core.Texture
             Handle = handle;
         }
 
-        public void Use()
+        public override void GPU_Use(TextureData textureData)
         {
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, Handle);
@@ -28,7 +27,7 @@ namespace OpenGL.App.Core.Texture
             Dispose();
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             if (_disposed) return;
 

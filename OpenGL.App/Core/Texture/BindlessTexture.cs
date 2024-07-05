@@ -7,41 +7,47 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
 using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
+using System.Reflection.Metadata;
 
 namespace OpenGL.App.Core.Texture
 {
-    public class BindlessTexture
+    public class BindlessTexture : Texture
     {
-        public List<long> TextureHandles { get; set; } = new List<long>();
+        public int TextureGroupHandle;
+        public List<BindlessTextureHandle> BindlessTextureHandles { get; set; } = new List<BindlessTextureHandle>();
+
+        public class BindlessTextureHandle
+        {
+            public long BindlessHandle;
+            public int TextureHandle;
+        }
 
         public BindlessTexture(string directory)
         {
-            var textures = LoadTextures(directory);
-            TextureHandles = CreateBindlessTextures(textures);
+            LoadTextures(directory);
+            CreateBindlessTextures();
         }
 
-        private static List<long> CreateBindlessTextures(List<int> textures)
+        private void CreateBindlessTextures()
         {
-            var handles = new List<long>();
-            foreach (var texture in textures)
+            foreach (var texture in BindlessTextureHandles)
             {
-                GL.BindTexture(TextureTarget.Texture2D, texture);
-                long handle = GL.Arb.GetTextureHandle(texture);
-                GL.Arb.MakeTextureHandleResident(handle);
-                handles.Add(handle);
+                GL.BindTexture(TextureTarget.Texture2D, texture.TextureHandle);
+                texture.BindlessHandle = GL.Arb.GetTextureHandle(texture.TextureHandle);
+                GL.Arb.MakeTextureHandleResident(texture.BindlessHandle);
             }
-            return handles;
         }
 
-        private static List<int> LoadTextures(string directory)
+        private void LoadTextures(string directory)
         {
-            var textures = new List<int>();
             var files = Directory.GetFiles(directory, "*.png");
 
             foreach (var file in files)
             {
-                int texture = GL.GenTexture();
-                GL.BindTexture(TextureTarget.Texture2D, texture);
+                var bindlessTextureHandle = new BindlessTextureHandle();
+
+                bindlessTextureHandle.TextureHandle = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2D, bindlessTextureHandle.TextureHandle);
 
                 using (var image = new Bitmap(file))
                 {
@@ -59,10 +65,37 @@ namespace OpenGL.App.Core.Texture
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
                 GL.BindTexture(TextureTarget.Texture2D, 0);
-                textures.Add(texture);
+
+                BindlessTextureHandles.Add(bindlessTextureHandle);
+            }
+        }
+
+        ~BindlessTexture()
+        {
+            Dispose();
+        }
+
+        public override void Dispose()
+        {
+            if (_disposed) return;
+
+            _disposed = true;
+            foreach (var textureHandle in this.BindlessTextureHandles)
+            {
+                GL.Arb.MakeTextureHandleNonResident(textureHandle.BindlessHandle);
+                GL.DeleteTexture(textureHandle.TextureHandle);
             }
 
-            return textures;
+            GC.SuppressFinalize(this);
         }
+
+        public override void GPU_Use(TextureData textureData)
+        {
+            if (textureData.ShaderUniformLocation == null || textureData.SelectedTexture == null)
+                throw new ArgumentOutOfRangeException("Parameters shaderUniformLocation and selectedTexture cannot be null");
+
+            GL.Arb.UniformHandle(textureData.ShaderUniformLocation.Value, BindlessTextureHandles[textureData.SelectedTexture.Value].BindlessHandle);
+        }
+
     }
 }

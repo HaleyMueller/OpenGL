@@ -10,7 +10,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace OpenGL.App.Core.Texture
 {
-    public class TextureArray
+    public class TextureArray : Texture
     {
         public int TextureHandle { get; private set; }
 
@@ -83,7 +83,22 @@ namespace OpenGL.App.Core.Texture
             return bitmaps;
         }
 
-        public void Use()
+        ~TextureArray()
+        {
+            Dispose();
+        }
+
+        public override void Dispose()
+        {
+            if (_disposed) return;
+
+            _disposed = true;
+            GL.DeleteTexture(TextureHandle);
+
+            GC.SuppressFinalize(this);
+        }
+
+        public override void GPU_Use(TextureData textureData)
         {
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2DArray, TextureHandle);

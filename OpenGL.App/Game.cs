@@ -78,8 +78,16 @@ namespace OpenGL.App
         FmodAudio.Channel fmodChannel;
         FmodAudio.Sound sound;
 
+        public bool IsBindlessSupported;
+
         protected override void OnLoad()
         {
+            IsBindlessSupported = IsBindlessTextureSupported();
+
+            #if DEBUG
+            IsBindlessSupported = false;
+            #endif
+
             this.IsVisible = true;
 
             fmodSystem = FmodAudio.Fmod.CreateSystem();
@@ -127,9 +135,18 @@ namespace OpenGL.App
 
             var _texture = TextureFactory.Instance.LoadTexture("C:\\tmp\\test.png");
 
-            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBOAtlas.glsl", new VertexBuffer[] { vertexBuffer }, indices, null);
+            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "Tile.glsl", new VertexBuffer[] { vertexBuffer }, indices);
+
+            if (IsBindlessSupported) //Create bindless textures
+                _gameObject.AddTexture(BindlessTexture, new Texture.TextureData() { SelectedTexture = 1, ShaderUniformLocation = _gameObject.GetShaderProgram().GetUniform("bindlessTexture").Location });
+            else //Create texture array
+                _gameObject.AddTexture(TextureArray, new Texture.TextureData() { SetUniformOnAdd = new Dictionary<string, float> { { "selectedTexture", 0 } } });
+
+
+
             _gameObject.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
-            _gameObject2 = new PlaneWithImage(new Vector3(0.7f, -.75f, 0.5f), new Vector3(1, .4f, 1), Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBO.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
+            _gameObject2 = new PlaneWithImage(new Vector3(0.7f, -.75f, 0.5f), new Vector3(1, .4f, 1), Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBO.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices);
+            _gameObject2.AddTexture(_texture, new Texture.TextureData());
             _gameObject2.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
 
             _font = new FreeTypeFont();
@@ -139,6 +156,20 @@ namespace OpenGL.App
             GL.Enable(EnableCap.DepthTest);
 
             base.OnLoad();
+        }
+
+        private bool IsBindlessTextureSupported()
+        {
+            int numberOfExtensions = GL.GetInteger(GetPName.NumExtensions);
+            for (int i = 0; i < numberOfExtensions; i++)
+            {
+                string extension = GL.GetString(StringNameIndexed.Extensions, i);
+                if (extension == "GL_ARB_bindless_texture")
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         protected override void OnUnload()
@@ -209,15 +240,12 @@ namespace OpenGL.App
 
             //Draw Objects
 
-            // Select a bindless texture to use (example: first texture)
-            long selectedTexture = BindlessTexture.TextureHandles[1];
-            int bindlessTextureUniform = GL.GetUniformLocation(_gameObject.GetShaderProgram().ShaderProgramHandle, "bindlessTexture");
-            GL.Arb.ProgramUniformHandle(_gameObject.GetShaderProgram().ShaderProgramHandle, bindlessTextureUniform, selectedTexture);
             _gameObject.GPU_Use();
             _gameObject2.GPU_Use();
 
             GL.UseProgram(ShaderFactory.ShaderPrograms["TextShader.glsl"].ShaderProgramHandle);
             _font.RenderText($"FPS: {framesDuringLimit}", new Vector2(.5f, 12f), .25f, new Color4(1f, .8f, 1f, 1f));
+            _font.RenderText($"IsBindlessSupported: {IsBindlessSupported}", new Vector2(.5f, 25f), .25f, new Color4(1f, .8f, 1f, 1f));
             _font.RenderText("this is a test", new Vector2(this.Size.X/2, this.Size.Y / 2), 1f, new Color4(.1f, .8f, .1f, .15f));
 
             this.Context.SwapBuffers(); //Take back buffer into forground buffer

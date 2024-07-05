@@ -28,6 +28,9 @@
     <None Update="Resources\Shaders\TextShader.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\Shaders\Tile.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\Shaders\TextureWithColorAndTextureSlotUBOBindless.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

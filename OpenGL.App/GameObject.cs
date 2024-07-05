@@ -19,7 +19,7 @@ namespace OpenGL.App
     {
         public ProjectionTypeEnum ProjectionType;
 
-        public Texture2D Texture;
+        private List<Texture> Textures = new List<Texture>();
         public string ShaderFactoryID;
         public VertexArray VertexArray;
         public IndexBuffer IndexBuffer;
@@ -42,19 +42,33 @@ namespace OpenGL.App
             Orthographic
         }
 
-        public GameObject(Vector3 position, Vector3 scale, Quaternion rotation, ProjectionTypeEnum projectionType, string shaderFactoryID, VertexBuffer[] vertexArray, int[] indices, Texture2D texture = null)
+        public Dictionary<int, Texture.TextureData> TextureDatas = new Dictionary<int, Texture.TextureData>();
+
+        public GameObject(Vector3 position, Vector3 scale, Quaternion rotation, ProjectionTypeEnum projectionType, string shaderFactoryID, VertexBuffer[] vertexArray, int[] indices)
         {
             Position = position;
             Scale = scale;
             Rotation = rotation;
             ProjectionType = projectionType;
-            Texture = texture;
             ShaderFactoryID = shaderFactoryID;
 
             VertexArray = new VertexArray(vertexArray, ShaderFactory.ShaderPrograms[shaderFactoryID].ShaderProgramHandle);
 
             this.IndexBuffer = new IndexBuffer(indices.Length, true);
             this.IndexBuffer.SetData(indices, indices.Length);
+        }
+
+        public void AddTexture(Texture texture, Texture.TextureData data)
+        {
+            int i = Textures.Count;
+
+            Textures.Add(texture);
+            TextureDatas.Add(i, data);
+
+            foreach (var uniformKVP in data.SetUniformOnAdd)
+            {
+                GetShaderProgram().SetUniform(uniformKVP.Key, uniformKVP.Value);
+            }
         }
 
         public ShaderProgram GetShaderProgram()
@@ -66,10 +80,12 @@ namespace OpenGL.App
         {
             GPU_Use_Shader();
             
-            if (Texture != null)
-                Texture.Use();
-            else
-                Game._Game.TextureArray.Use();
+            foreach (var texture in  this.Textures)
+            {
+                var textureIndex = this.Textures.IndexOf(texture);
+                var textureData = TextureDatas[textureIndex];
+                texture.GPU_Use(textureData);
+            }
 
             GPU_Use_Vertex();
         }
@@ -97,7 +113,10 @@ namespace OpenGL.App
         public void Dispose()
         {
             //Removing everything
-            this.Texture?.Dispose();
+            foreach (var texture in this.Textures)
+            {
+                texture.Dispose();
+            }
             this.VertexArray?.Dispose();
             this.IndexBuffer?.Dispose();
         }
@@ -105,7 +124,7 @@ namespace OpenGL.App
 
     public class PlaneWithImage : GameObject
     {
-        public PlaneWithImage(Vector3 position, Vector3 scale, Quaternion rotation, ProjectionTypeEnum projectionType, string shaderFile, VertexBuffer[] vertexArray, int[] indices, Texture2D texture = null) : base(position, scale, rotation, projectionType, shaderFile, vertexArray, indices, texture)
+        public PlaneWithImage(Vector3 position, Vector3 scale, Quaternion rotation, ProjectionTypeEnum projectionType, string shaderFile, VertexBuffer[] vertexArray, int[] indices) : base(position, scale, rotation, projectionType, shaderFile, vertexArray, indices)
         {
 
         }
