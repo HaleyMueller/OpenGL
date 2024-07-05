@@ -136,15 +136,12 @@ namespace OpenGL.App
             var _texture = TextureFactory.Instance.LoadTexture("C:\\tmp\\test.png");
 
             _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "Tile.glsl", new VertexBuffer[] { vertexBuffer }, indices);
-
+            _gameObject.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
             if (IsBindlessSupported) //Create bindless textures
                 _gameObject.AddTexture(BindlessTexture, new Texture.TextureData() { SelectedTexture = 1, ShaderUniformLocation = _gameObject.GetShaderProgram().GetUniform("bindlessTexture").Location });
             else //Create texture array
                 _gameObject.AddTexture(TextureArray, new Texture.TextureData() { SetUniformOnAdd = new Dictionary<string, float> { { "selectedTexture", 0 } } });
-
-
-
-            _gameObject.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
+            
             _gameObject2 = new PlaneWithImage(new Vector3(0.7f, -.75f, 0.5f), new Vector3(1, .4f, 1), Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBO.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices);
             _gameObject2.AddTexture(_texture, new Texture.TextureData());
             _gameObject2.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
