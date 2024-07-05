@@ -26,11 +26,8 @@ in vec2 f_uv;
 uniform sampler2DArray u_tex;
 uniform float textureUnit;
 
-out vec4 FragColor;
+out vec4 color;
 
 void main() {
-    vec3 texCoordTest = vec3(f_uv.x, f_uv.y, 3);
-    vec4 color = texture(u_tex, texCoordTest);            
-    FragColor = color ; 
-                            
+    color = texture(u_tex, vec3(f_uv.x, f_uv.y, 3));                   
 };

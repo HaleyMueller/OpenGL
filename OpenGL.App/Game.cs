@@ -127,7 +127,7 @@ namespace OpenGL.App
 
             var _texture = TextureFactory.Instance.LoadTexture("C:\\tmp\\test.png");
 
-            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBOBindless.glsl", new VertexBuffer[] { vertexBuffer }, indices, null);
+            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBOAtlas.glsl", new VertexBuffer[] { vertexBuffer }, indices, null);
             _gameObject.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
             _gameObject2 = new PlaneWithImage(new Vector3(0.7f, -.75f, 0.5f), new Vector3(1, .4f, 1), Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBO.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices, _texture);
             _gameObject2.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
