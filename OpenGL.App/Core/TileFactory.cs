@@ -100,7 +100,8 @@ namespace OpenGL.App.Core
                 var tileTexture = TileTextures[tileID];
                 var texture = Textures[tileTexture.TextureIndex];
 
-                shaderProgram.SetUniform("selectedTexture", tileTexture.TextureDepth);
+                if (Game._Game.IsBindlessSupported == false)
+                    shaderProgram.SetUniform("selectedTexture", tileTexture.TextureDepth);
 
                 texture.GPU_Use(textureData);
             }

@@ -94,7 +94,7 @@ namespace OpenGL.App
             MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
 
             #if DEBUG
-            IsBindlessSupported = false;
+            IsBindlessSupported = true;
             //MaxArrayTextureLayers = 2;
             #endif
 
@@ -159,7 +159,7 @@ namespace OpenGL.App
             if (IsBindlessSupported) //Create bindless textures
             {
                 BindlessTexture = new BindlessTexture("Resources/Textures");
-                _gameObject.AddTexture(BindlessTexture, new Texture.TextureData() { SelectedTexture = 1, ShaderUniformLocation = _gameObject.GetShaderProgram().GetUniform("bindlessTexture").Location });
+                _gameObject.AddTexture(BindlessTexture, new Texture.TextureData() { SelectedTexture = 0, ShaderUniformLocation = _gameObject.GetShaderProgram().GetUniform("bindlessTexture").Location });
             }
             else //Create texture array
             {

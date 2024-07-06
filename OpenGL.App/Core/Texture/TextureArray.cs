@@ -100,12 +100,12 @@ namespace OpenGL.App.Core.Texture
 
         public override void Dispose()
         {
-            //if (_disposed) return;
+            if (_disposed) return;
 
-            //_disposed = true;
-            //GL.DeleteTexture(TextureHandle);
+            _disposed = true;
+            GL.DeleteTexture(TextureHandle);
 
-            //GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this);
         }
 
         public override void GPU_Use(TextureData textureData)

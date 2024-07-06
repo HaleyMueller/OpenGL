@@ -250,8 +250,17 @@ namespace OpenGL.App
         {
             GetShaderProgram().SetUniform("model", this.ModelView);
 
-            Game._Game.TileTextureFactory.GPU_Use(TileID, GetShaderProgram(), TextureData);
-            base.GPU_Use_Shader();
+            if (Game._Game.IsBindlessSupported) //Techincally not needed if we did program bindless lookup for bindless textures
+            {
+                base.GPU_Use_Shader();
+                Game._Game.TileTextureFactory.GPU_Use(TileID, GetShaderProgram(), TextureData);
+            }
+            else
+            {
+                Game._Game.TileTextureFactory.GPU_Use(TileID, GetShaderProgram(), TextureData);
+                base.GPU_Use_Shader();
+            }
+
         }
     }
 }

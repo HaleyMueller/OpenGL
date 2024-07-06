@@ -86,16 +86,16 @@ namespace OpenGL.App.Core.Texture
 
         public override void Dispose()
         {
-            //if (_disposed) return;
+            if (_disposed) return;
 
-            //_disposed = true;
-            //foreach (var textureHandle in this.BindlessTextureHandles)
-            //{
-            //    GL.Arb.MakeTextureHandleNonResident(textureHandle.BindlessHandle);
-            //    GL.DeleteTexture(textureHandle.TextureHandle);
-            //}
+            _disposed = true;
+            foreach (var textureHandle in this.BindlessTextureHandles)
+            {
+                GL.Arb.MakeTextureHandleNonResident(textureHandle.BindlessHandle);
+                GL.DeleteTexture(textureHandle.TextureHandle);
+            }
 
-            //GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this);
         }
 
         public override void GPU_Use(TextureData textureData)
