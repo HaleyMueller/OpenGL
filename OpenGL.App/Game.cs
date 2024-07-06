@@ -94,7 +94,7 @@ namespace OpenGL.App
             MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
 
             #if DEBUG
-            IsBindlessSupported = true;
+            IsBindlessSupported = false;
             //MaxArrayTextureLayers = 2;
             #endif
 
@@ -174,7 +174,7 @@ namespace OpenGL.App
             Stopwatch.Start();
 
 
-            Tile = new TileGameObject(new Vector3(0.1f, 0.1f, 0.1f), Vector3.One, Quaternion.Identity);
+            Tile = new TileGameObject(new Vector3(0.1f, 0.5f, 0.1f), new Vector3(.1f, .1f, .1f), Quaternion.Identity);
             Tile.SetTileID(3);
 
 
@@ -266,7 +266,7 @@ namespace OpenGL.App
 
             //Draw Objects
 
-            _gameObject.GPU_Use();
+            //_gameObject.GPU_Use();
             _gameObject2.GPU_Use();
             Tile.GPU_Use();
 
