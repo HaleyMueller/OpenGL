@@ -62,6 +62,13 @@ namespace OpenGL.App
             this.IndexBuffer.SetData(indices, indices.Length);
         }
 
+        public GameObject(Vector3 position, Vector3 scale, Quaternion rotation)
+        {
+            Position = position;
+            Scale = scale;
+            Rotation = rotation;
+        }
+
         public GameObject(Vector3 position, Vector3 scale, Quaternion rotation, ProjectionTypeEnum projectionType, string shaderFactoryID, VertexBuffer[] vertexArray, int[] indices)
         {
             Position = position;
@@ -216,13 +223,41 @@ namespace OpenGL.App
         }
     }
 
-    public class Tile : GameObject
+    public class TileGameObject : GameObject
     {
         private int TileID;
         private Texture.TextureData TextureData;
 
-        public Tile(Vector3 position, Vector3 scale, Quaternion rotation, ProjectionTypeEnum projectionType, string shaderFactoryID, VertexBuffer[] vertexArray, int[] indices) : base(position, scale, rotation, projectionType, shaderFactoryID, vertexArray, indices)
+        private int[] Indices = new int[]
         {
+            0, 1, 2, 0, 2, 3
+        };
+
+        private Resources.Shaders.VertexPositionTexture[] ModelVertices()
+        {
+            var vertices = new Resources.Shaders.VertexPositionTexture[4];
+
+            vertices[0] = new Resources.Shaders.VertexPositionTexture(new Vector2(.5f, .5f), new Vector2(1, 1));
+            vertices[1] = new Resources.Shaders.VertexPositionTexture(new Vector2(.5f, -.5f), new Vector2(1, 0));
+            vertices[2] = new Resources.Shaders.VertexPositionTexture(new Vector2(-.5f, -.5f), new Vector2(0, 0));
+            vertices[3] = new Resources.Shaders.VertexPositionTexture(new Vector2(-.5f, .5f), new Vector2(0, 1));
+
+            return vertices;
+        }
+
+        public TileGameObject(Vector3 position, Vector3 scale, Quaternion rotation) : base(position, scale, rotation)
+        {
+            ShaderProgram = ShaderFactory.ShaderPrograms["Tile.glsl"];
+
+            var vertices = ModelVertices();
+
+            var vertexBuffer = new VertexBuffer(Resources.Shaders.VertexPositionTexture.VertexInfo, vertices.Length, "PositionAndTexture", true);
+            vertexBuffer.SetData(vertices, vertices.Length);
+
+            VertexArray = new VertexArray(new VertexBuffer[] { vertexBuffer }, GetShaderProgram().ShaderProgramHandle);
+
+            this.IndexBuffer = new IndexBuffer(Indices.Length, true);
+            this.IndexBuffer.SetData(Indices, Indices.Length);
         }
 
         public void SetTileID(int tileID)

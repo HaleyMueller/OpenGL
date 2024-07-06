@@ -46,10 +46,12 @@ namespace OpenGL.App.Core
 
                     Textures.Add(bt);
 
+                    int textureDepth = 0;
                     foreach (var fileName in bt.TextureFiles)
                     {
                         var tileTexture = new TileTexture();
                         tileTexture.TextureIndex = 0; //Should only ever have 1 bindless texture since it is infinite
+                        tileTexture.TextureDepth = textureDepth;
 
                         FileInfo fileInfo = new FileInfo(fileName);
                         string fileNameWithoutExtenstion = fileInfo.Name.Replace(fileInfo.Extension, string.Empty);
@@ -59,6 +61,8 @@ namespace OpenGL.App.Core
                             Console.WriteLine($"Couldn't find tile object with name of: {fileNameWithoutExtenstion}");
                         else
                             TileTextures[tileID] = tileTexture;
+
+                        textureDepth++;
                     }
                 }
                 else //Create texture arrays
@@ -102,6 +106,8 @@ namespace OpenGL.App.Core
 
                 if (Game._Game.IsBindlessSupported == false)
                     shaderProgram.SetUniform("selectedTexture", tileTexture.TextureDepth);
+                else
+                    textureData.SelectedTexture = tileTexture.TextureDepth;
 
                 texture.GPU_Use(textureData);
             }

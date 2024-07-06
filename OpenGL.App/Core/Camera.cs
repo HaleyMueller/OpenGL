@@ -64,6 +64,8 @@ namespace OpenGL.App.Core
 
         public Matrix4 GetProjectionMatrix(int openGLWindowX, int openGLWindowY)
         {
+            //return Matrix4.CreateOrthographic(Game._Game.ClientRectangle.Size.X, Game._Game.ClientRectangle.Size.Y, 0.01f, 100.0f);
+            //return Matrix4.CreateOrthographicOffCenter(0.0f, Game._Game.ClientRectangle.Size.X, Game._Game.ClientRectangle.Size.Y, 0.0f, 0.1f, 100.0f);
             return Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FOV), openGLWindowX / openGLWindowY, .01f, 100f);
         }
 

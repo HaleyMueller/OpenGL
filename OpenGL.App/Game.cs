@@ -85,7 +85,7 @@ namespace OpenGL.App
         public TileFactory TileFactory;
         public TileFactory.TileTextureFactory TileTextureFactory;
 
-        public Tile Tile;
+        public TileGameObject Tile;
 
         protected override void OnLoad()
         {
@@ -100,8 +100,6 @@ namespace OpenGL.App
 
 
             this.IsVisible = true;
-
-
 
             fmodSystem = FmodAudio.Fmod.CreateSystem();
             fmodSystem.Init(32, FmodAudio.InitFlags.Normal);
@@ -176,7 +174,7 @@ namespace OpenGL.App
             Stopwatch.Start();
 
 
-            Tile = new Tile(new Vector3(0.1f, 0.1f, 0.1f), Vector3.One, Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "Tile.glsl", new VertexBuffer[] { vertexBuffer }, indices);
+            Tile = new TileGameObject(new Vector3(0.1f, 0.1f, 0.1f), Vector3.One, Quaternion.Identity);
             Tile.SetTileID(3);
 
 
