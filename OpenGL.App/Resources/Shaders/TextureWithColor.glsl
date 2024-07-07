@@ -11,7 +11,7 @@ out vec4 color;
 void main()
 {
 	color = aColor;
-	gl_Position = vec4(aPosition.x, aPosition.y, 0, 1.0f);
+	gl_Position = vec4(aPosition.x, aPosition.y, 0, 1.0);
 
 	texCoord = aTexCoord;
 }

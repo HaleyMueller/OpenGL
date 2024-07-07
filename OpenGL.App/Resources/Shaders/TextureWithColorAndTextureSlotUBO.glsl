@@ -19,7 +19,7 @@ out vec4 color;
 void main()
 {
 	color = Color;
-	gl_Position = projection * view * model * vec4(Position.x, Position.y, 0, 1.0f);
+	gl_Position = projection * view * model * vec4(Position.x, Position.y, 0, 1.0);
 
 	texCoord = TexCoord;
 }

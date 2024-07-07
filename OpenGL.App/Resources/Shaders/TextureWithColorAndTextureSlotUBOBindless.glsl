@@ -15,7 +15,7 @@ uniform mat4 model;
 
 void main() {
     f_uv = TexCoord;
-    gl_Position =  projection * view * model * vec4(Position, 0.0, 1.0f);
+    gl_Position =  projection * view * model * vec4(Position, 0.0, 1.0);
 };
 
 #FragmentShader
