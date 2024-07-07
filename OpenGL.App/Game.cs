@@ -21,6 +21,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenGL.App.Core;
 using OpenGL.App.Core.UniformBufferObject;
 using System.Security.Cryptography.X509Certificates;
+using OpenGL.App.GameObjects;
 
 namespace OpenGL.App
 {
@@ -32,10 +33,9 @@ namespace OpenGL.App
 
         public UniformBufferObjectFactory UBOFactory { get; private set; }
         public ShaderFactory ShaderFactory { get; private set; }
+        public TileFactory TileFactory { get; private set; }
+        public TileFactory.TileTextureFactory TileTextureFactory { get; private set; }
         private FreeTypeFont _font;
-
-        private PlaneWithImage _gameObject;
-        private PlaneWithImage _gameObject2;
 
         public TextureArray TextureArray;
         public BindlessTexture BindlessTexture;
@@ -82,102 +82,37 @@ namespace OpenGL.App
         public bool IsBindlessSupported;
         public int MaxArrayTextureLayers;
 
-        public TileFactory TileFactory;
-        public TileFactory.TileTextureFactory TileTextureFactory;
+
 
         public TileGameObject Tile;
 
         protected override void OnLoad()
         {
             IsBindlessSupported = IsBindlessTextureSupported();
-            // Query the maximum number of array texture layers
             MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
 
             #if DEBUG
-            IsBindlessSupported = false;
+            //IsBindlessSupported = false;
             //MaxArrayTextureLayers = 2;
             #endif
 
-
             this.IsVisible = true;
-
-            fmodSystem = FmodAudio.Fmod.CreateSystem();
-            fmodSystem.Init(32, FmodAudio.InitFlags.Normal);
-
-            sound = fmodSystem.CreateSound("Resources/Sounds/close_door_metal.ogg");
-            //fmodSystem.PlaySound(sound);
-
-            MainCamera = new Camera(new Vector3(0, 0, 3f), null);
 
             GL.ClearColor(Color4.DarkCyan); //Set up clear color
 
             UBOFactory = new UniformBufferObjectFactory();
             ShaderFactory = new ShaderFactory();
-
-
             TileFactory = new TileFactory();
             TileTextureFactory = new TileFactory.TileTextureFactory(TileFactory);
 
-
-
-
-
-
-            Resources.Shaders.VertexPositionTexture[] vertices = new Resources.Shaders.VertexPositionTexture[]
-                {
-                new Resources.Shaders.VertexPositionTexture(new Vector2(.5f, .5f), new Vector2(1, 1)),
-                new Resources.Shaders.VertexPositionTexture(new Vector2(.5f, -.5f), new Vector2(1, 0)),
-                new Resources.Shaders.VertexPositionTexture(new Vector2(-.5f, -.5f), new Vector2(0, 0)),
-                new Resources.Shaders.VertexPositionTexture(new Vector2(-.5f, .5f), new Vector2(0, 1))
-                };
-
-            Resources.Shaders.VertexColor[] verticesColor = new Resources.Shaders.VertexColor[]
-            {
-                new Resources.Shaders.VertexColor(new Color4(1f, 1f, 1f, 1f)),
-                new Resources.Shaders.VertexColor(new Color4(1f, 1f, 1f, 1f)),
-                new Resources.Shaders.VertexColor(new Color4(1f, 1f, 1f, 1f)),
-                new Resources.Shaders.VertexColor(new Color4(1f, 1f, 1f, 1f))
-            };
-
-            int[] indices = new int[]
-            {
-                0, 1, 2, 0, 2, 3
-            };
-
-            var vertexBuffer = new VertexBuffer(Resources.Shaders.VertexPositionTexture.VertexInfo, vertices.Length, "PositionAndTexture", true);
-            vertexBuffer.SetData(vertices, vertices.Length);
-
-            var vertexColorBuffer = new VertexBuffer(Resources.Shaders.VertexColor.VertexInfo, verticesColor.Length, "Color", false);
-            vertexColorBuffer.SetData(verticesColor, verticesColor.Length);
-
-            var _texture = TextureFactory.Instance.LoadTexture("C:\\tmp\\test.png");
-
-            _gameObject = new PlaneWithImage(new Vector3(0.5f, 0.4f, 0.5f), Vector3.One, new Quaternion(MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(45), MathHelper.DegreesToRadians(0)), GameObject.ProjectionTypeEnum.Orthographic, "Tile.glsl", new VertexBuffer[] { vertexBuffer }, indices);
-            _gameObject.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
-            if (IsBindlessSupported) //Create bindless textures
-            {
-                BindlessTexture = new BindlessTexture("Resources/Textures");
-                _gameObject.AddTexture(BindlessTexture, new Texture.TextureData() { SelectedTexture = 0, ShaderUniformLocation = _gameObject.GetShaderProgram().GetUniform("bindlessTexture").Location });
-            }
-            else //Create texture array
-            {
-                TextureArray = new TextureArray("Resources/Textures");
-                _gameObject.AddTexture(TextureArray, new Texture.TextureData() { SetUniformOnAdd = new Dictionary<string, float> { { "selectedTexture", 0 } } });
-            }
-            
-            _gameObject2 = new PlaneWithImage(new Vector3(0.7f, -.75f, 0.5f), new Vector3(1, .4f, 1), Quaternion.Identity, GameObject.ProjectionTypeEnum.Orthographic, "TextureWithColorAndTextureSlotUBO.glsl", new VertexBuffer[] { vertexBuffer, vertexColorBuffer }, indices);
-            _gameObject2.AddTexture(_texture, new Texture.TextureData());
-            _gameObject2.GetShaderProgram().UsedUBOs.Add(UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix);
+            MainCamera = new Camera(new Vector3(0, 0, 3f), null);
 
             _font = new FreeTypeFont();
 
             Stopwatch.Start();
 
-
-            Tile = new TileGameObject(new Vector3(0.1f, 0.5f, 0.1f), new Vector3(.1f, .1f, .1f), Quaternion.Identity);
-            Tile.SetTileID(3);
-
-
+            Tile = new TileGameObject(0, 0);
+            Tile.SetTileID(0);
 
             GL.Enable(EnableCap.DepthTest);
 
@@ -201,11 +136,8 @@ namespace OpenGL.App
         protected override void OnUnload()
         {
             //Removing everything
-            _gameObject.Dispose();
-            _gameObject2.Dispose();
+            Tile?.Dispose();
             ShaderFactory.Dispose();
-
-            fmodSystem.Release();
 
             base.OnUnload();
         }
@@ -227,9 +159,6 @@ namespace OpenGL.App
             else if (_Game.IsKeyDown(Keys.D))
                 MainCamera.ProcessKeyboard(Camera.Camera_Movement.RIGHT, (float)args.Time);
 
-            _gameObject.Update(args);
-            _gameObject2.Update(args);
-
             base.OnUpdateFrame(args);
         }
 
@@ -241,8 +170,6 @@ namespace OpenGL.App
 
         protected override void OnRenderFrame(FrameEventArgs args)
         {
-            fmodSystem.Update();
-
             #region FPS
             timeSpans.Add(DateTime.Now.Ticks);
 
@@ -265,10 +192,9 @@ namespace OpenGL.App
             UniformBufferObjectFactory.UniformBufferObjects[UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix].GPU_Use();
 
             //Draw Objects
-
-            //_gameObject.GPU_Use();
-            _gameObject2.GPU_Use();
             Tile.GPU_Use();
+
+            GL.Clear(ClearBufferMask.DepthBufferBit); //Clear depth buffer for ui to be on top
 
             GL.UseProgram(ShaderFactory.ShaderPrograms["TextShader.glsl"].ShaderProgramHandle);
             _font.RenderText($"FPS: {framesDuringLimit}", new Vector2(.5f, 12f), .25f, new Color4(1f, .8f, 1f, 1f));
