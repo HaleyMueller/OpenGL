@@ -21,7 +21,7 @@ namespace OpenGL.App.GameObjects
     {
         public ProjectionTypeEnum ProjectionType;
 
-        private List<Texture> Textures = new List<Texture>();
+        internal List<Texture> Textures = new List<Texture>();
         public string ShaderFactoryID;
         public VertexArray VertexArray;
         public IndexBuffer IndexBuffer;
@@ -104,7 +104,7 @@ namespace OpenGL.App.GameObjects
             return ShaderFactory.ShaderPrograms[ShaderFactoryID];
         }
 
-        public void GPU_Use()
+        public virtual void GPU_Use()
         {
             foreach (Texture.TextureData textureData in TextureDatas.Values)
             {
@@ -132,7 +132,7 @@ namespace OpenGL.App.GameObjects
             GetShaderProgram().Use(); //Use shader program
         }
 
-        private void GPU_Use_Vertex()
+        internal virtual void GPU_Use_Vertex()
         {
             GL.BindVertexArray(VertexArray.VertexArrayHandle); //Use vertex array handle to grab the vec3's variable
 

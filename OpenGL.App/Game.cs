@@ -40,6 +40,8 @@ namespace OpenGL.App
         public TextureArray TextureArray;
         public BindlessTexture BindlessTexture;
 
+        public TileGrid TileGrid;
+
         public Game(int width = 1280, int height = 768) : base(
             GameWindowSettings.Default, 
             new NativeWindowSettings()
@@ -82,19 +84,17 @@ namespace OpenGL.App
         public bool IsBindlessSupported;
         public int MaxArrayTextureLayers;
 
-
-
-        public TileGameObject Tile;
+        //public TileGameObject Tile;
 
         protected override void OnLoad()
         {
             IsBindlessSupported = IsBindlessTextureSupported();
             MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
 
-            #if DEBUG
-            //IsBindlessSupported = false;
+#if DEBUG
+            IsBindlessSupported = false;
             //MaxArrayTextureLayers = 2;
-            #endif
+#endif
 
             this.IsVisible = true;
 
@@ -111,8 +111,10 @@ namespace OpenGL.App
 
             Stopwatch.Start();
 
-            Tile = new TileGameObject(0, 0);
-            Tile.SetTileID(0);
+            TileGrid = new TileGrid(100,100);
+
+            //Tile = new TileGameObject(0, 0);
+            //Tile.SetTileID(0);
 
             GL.Enable(EnableCap.DepthTest);
 
@@ -136,7 +138,7 @@ namespace OpenGL.App
         protected override void OnUnload()
         {
             //Removing everything
-            Tile?.Dispose();
+            TileGrid?.Dispose();
             ShaderFactory.Dispose();
 
             base.OnUnload();
@@ -192,7 +194,7 @@ namespace OpenGL.App
             UniformBufferObjectFactory.UniformBufferObjects[UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix].GPU_Use();
 
             //Draw Objects
-            Tile.GPU_Use();
+            TileGrid.GPU_Use();
 
             GL.Clear(ClearBufferMask.DepthBufferBit); //Clear depth buffer for ui to be on top
 

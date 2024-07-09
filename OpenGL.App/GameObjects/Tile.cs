@@ -40,16 +40,16 @@ namespace OpenGL.App.GameObjects
         {
             GridPosX = gridPosX;
             GridPosY = gridPosY;
-            Position = new Vector3(gridPosX, gridPosY, 0);
+            Position = new Vector3(gridPosX*.1f, gridPosY * .1f, 0);
         }
 
-        public TileGameObject(int gridPosX, int gridPosY) : base()
+        public TileGameObject() : base()
         {
             Scale = new Vector3(0.1f, 0.1f, 0.1f);
 
             ShaderProgram = ShaderFactory.ShaderPrograms["Tile.glsl"];
 
-            UpdateTilePos(gridPosX, gridPosY);
+            UpdateTilePos(0, 0);
 
             var vertices = ModelVertices();
 
@@ -60,6 +60,23 @@ namespace OpenGL.App.GameObjects
 
             IndexBuffer = new IndexBuffer(Indices.Length, true);
             IndexBuffer.SetData(Indices, Indices.Length);
+        }
+
+        public TileGameObject(int gridPosX, int gridPosY) : base()
+        {
+            Scale = new Vector3(0.1f, 0.1f, 0.1f);
+
+            UpdateTilePos(gridPosX, gridPosY);
+
+            //var vertices = ModelVertices();
+
+            //var vertexBuffer = new VertexBuffer(Resources.Shaders.VertexPositionTexture.VertexInfo, vertices.Length, "PositionAndTexture", true);
+            //vertexBuffer.SetData(vertices, vertices.Length);
+
+            //VertexArray = new VertexArray(new VertexBuffer[] { vertexBuffer }, GetShaderProgram().ShaderProgramHandle);
+
+            //IndexBuffer = new IndexBuffer(Indices.Length, true);
+            //IndexBuffer.SetData(Indices, Indices.Length);
         }
 
         public void SetTileID(int tileID)
