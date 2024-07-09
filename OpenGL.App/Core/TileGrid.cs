@@ -17,16 +17,18 @@ namespace OpenGL.App.Core
         public TileGameObject[,] TileGameObjects;
         public int Width { get; private set; }
         public int Height { get; private set; }
+        public bool IsInstanced { get; private set; }
 
         private int[] Indices = new int[]
         {
             0, 1, 2, 0, 2, 3
         };
 
-        public TileGrid(int w, int h) : base()
+        public TileGrid(int w, int h, bool isInstanced) : base()
         {
             Width = w;
             Height = h;
+            IsInstanced = isInstanced;
 
             base.ShaderFactoryID = "TileInstanced.glsl";
 
@@ -46,14 +48,29 @@ namespace OpenGL.App.Core
 
             SetTileID(1);
 
-            TileGameObjects = new TileGameObject[w, h];
-            
-            for (int i = 0; i < w; i++)
+            if (IsInstanced == false)
             {
-                for (int j = 0; j < h; j++)
+                TileGameObjects = new TileGameObject[w, h];
+
+                for (int i = 0; i < w; i++)
                 {
-                    //TileGameObjects[i, j] = new TileGameObject(i, j);
-                    //TileGameObjects[i, j].SetTileID(1);
+                    for (int j = 0; j < h; j++)
+                    {
+                        TileGameObjects[i, j] = new TileGameObject(i, j);
+
+                        if (i % 2 == 0 && j % 2 == 0)
+                        {
+                            TileGameObjects[i, j].SetTileID(1);
+                        }
+                        else if (i % 2 == 0)
+                        {
+                            TileGameObjects[i, j].SetTileID(2);
+                        }
+                        else
+                        {
+                            TileGameObjects[i, j].SetTileID(0);
+                        }
+                    }
                 }
             }
         }
@@ -72,20 +89,7 @@ namespace OpenGL.App.Core
 
         private Resources.Shaders.TileInstanced[] OffsetPosition()
         {
-            var vertices = new Resources.Shaders.TileInstanced[Width*Height];
-
-            //int index = 0;
-            //float offset = 1f;
-            //for (int y = -Height; y < Height; y += 2)
-            //{
-            //    for (int x = -Width; x < Width; x += 2)
-            //    {
-            //        Vector2 translation = new Vector2();
-            //        translation.X = (float)x / Width + offset;
-            //        translation.Y = (float)y / Height + offset;
-            //        vertices[index++] = new Resources.Shaders.TileInstanced(translation);
-            //    }
-            //}
+            var vertices = new Resources.Shaders.TileInstanced[Width * Height];
 
             int index = 0;
             float offset = 1f;
@@ -94,42 +98,41 @@ namespace OpenGL.App.Core
                 for (int h = 0; h < Height; h++)
                 {
                     Vector2 translation = new Vector2();
-                    translation.X = (float)w  + offset;
-                    translation.Y = (float)h  + offset;
+                    translation.X = (float)w + offset;
+                    translation.Y = (float)h + offset;
                     vertices[index++] = new Resources.Shaders.TileInstanced(translation);
                 }
             }
-
-            //int index = 0;
-            //float offset = .1f;
-            //for (int y = -10; y < 10; y += 2)
-            //{
-            //    for (int x = -10; x < 10; x += 2)
-            //    {
-            //        Vector2 translation = new Vector2();
-            //        translation.X = (float)x / 10f + offset;
-            //        translation.Y = (float)y / 10f + offset;
-            //        vertices[index++] = new Resources.Shaders.TileInstanced(translation);
-            //    }
-            //}
-
 
             return vertices;
         }
 
         public override void GPU_Use()
         {
-            foreach (Texture.Texture.TextureData textureData in TextureDatas.Values)
+            if (IsInstanced)
             {
-                foreach (var uniformKVP in textureData.SetUniformOnAdd)
+                foreach (Texture.Texture.TextureData textureData in TextureDatas.Values)
                 {
-                    GetShaderProgram().SetUniform(uniformKVP.Key, uniformKVP.Value);
+                    foreach (var uniformKVP in textureData.SetUniformOnAdd)
+                    {
+                        GetShaderProgram().SetUniform(uniformKVP.Key, uniformKVP.Value);
+                    }
+                }
+
+                GPU_Use_Shader();
+
+                GPU_Use_Vertex();
+            }
+            else
+            {
+                for (int i = 0; i < Width; i++)
+                {
+                    for (int j = 0; j < Height; j++)
+                    {
+                        TileGameObjects[i, j].GPU_Use();
+                    }
                 }
             }
-
-            GPU_Use_Shader();
-
-            GPU_Use_Vertex();
         }
 
         internal override void GPU_Use_Shader()
@@ -173,11 +176,14 @@ namespace OpenGL.App.Core
 
         public void Dispose()
         {
-            for (int i = 0; i < Width; i++)
+            if (TileGameObjects != null)
             {
-                for (int j = 0; j < Height; j++)
+                for (int i = 0; i < Width; i++)
                 {
-                    TileGameObjects[i, j]?.Dispose();
+                    for (int j = 0; j < Height; j++)
+                    {
+                        TileGameObjects[i, j]?.Dispose();
+                    }
                 }
             }
         }

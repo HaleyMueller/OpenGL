@@ -40,7 +40,7 @@ namespace OpenGL.App.GameObjects
         {
             GridPosX = gridPosX;
             GridPosY = gridPosY;
-            Position = new Vector3(gridPosX*.1f, gridPosY * .1f, 0);
+            Position = new Vector3(gridPosX, gridPosY, 0);
         }
 
         public TileGameObject() : base()
@@ -68,7 +68,7 @@ namespace OpenGL.App.GameObjects
 
             ShaderProgram = ShaderFactory.ShaderPrograms["Tile.glsl"];
 
-            UpdateTilePos(0, 0);
+            UpdateTilePos(gridPosX, gridPosY);
 
             var vertices = ModelVertices();
 
