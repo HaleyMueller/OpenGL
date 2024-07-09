@@ -111,7 +111,7 @@ namespace OpenGL.App
 
             Stopwatch.Start();
 
-            TileGrid = new TileGrid(100,100);
+            TileGrid = new TileGrid(10,10);
 
             //Tile = new TileGameObject(0, 0);
             //Tile.SetTileID(0);

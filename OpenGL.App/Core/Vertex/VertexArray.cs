@@ -55,6 +55,9 @@ namespace OpenGL.App.Core.Vertex
                     GL.VertexAttribPointer(locationID, attribute.ComponentCount, VertexAttribPointerType.Float, false, vertexSizeInBytes, runningSizeInBytes); //Fill in the value from vertexShaderCode by location id. Also how to define each byte segment from the array
                     runningSizeInBytes += attribute.SizeOfType * attribute.ComponentCount;
                     GL.EnableVertexAttribArray(locationID); //Enable that variable location id on the shader
+                    
+                    if (attribute.VertexAttribDivisorCount.HasValue)
+                        GL.VertexAttribDivisor(locationID, attribute.VertexAttribDivisorCount.Value);
                 }
             }
 

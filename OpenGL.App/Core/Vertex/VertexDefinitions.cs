@@ -23,11 +23,14 @@ namespace OpenGL.App.Core.Vertex
         /// </summary>
         public readonly int SizeOfType;
 
-        public VertexAttribute(string name, int componentCount, int sizeofType)
+        public readonly int? VertexAttribDivisorCount;
+
+        public VertexAttribute(string name, int componentCount, int sizeofType, int? vertexAttribDivisorCount = null)
         {
             Name = name;
             ComponentCount = componentCount;
             SizeOfType = sizeofType;
+            VertexAttribDivisorCount = vertexAttribDivisorCount;
         }
     }
 

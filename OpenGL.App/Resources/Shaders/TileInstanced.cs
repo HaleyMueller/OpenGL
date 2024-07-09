@@ -16,7 +16,7 @@ namespace OpenGL.App.Resources.Shaders
         new VertexInfo
         (
             typeof(TileInstanced),
-            new VertexAttribute("aOffset", 2, sizeof(float))
+            new VertexAttribute("aOffset", 2, sizeof(float), 1)
         );
 
         public TileInstanced(Vector2 position)

@@ -74,18 +74,32 @@ namespace OpenGL.App.Core
         {
             var vertices = new Resources.Shaders.TileInstanced[Width*Height];
 
+            //int index = 0;
+            //float offset = 1f;
+            //for (int y = -Height; y < Height; y += 2)
+            //{
+            //    for (int x = -Width; x < Width; x += 2)
+            //    {
+            //        Vector2 translation = new Vector2();
+            //        translation.X = (float)x / Width + offset;
+            //        translation.Y = (float)y / Height + offset;
+            //        vertices[index++] = new Resources.Shaders.TileInstanced(translation);
+            //    }
+            //}
+
             int index = 0;
             float offset = .1f;
-            for (int y = -Height; y < Height; y += 2)
+            for (int y = -10; y < 10; y += 2)
             {
-                for (int x = -Width; x < Width; x += 2)
+                for (int x = -10; x < 10; x += 2)
                 {
                     Vector2 translation = new Vector2();
-                    translation.X = (float)x / Width + offset;
-                    translation.Y = (float)y / Height + offset;
+                    translation.X = (float)x / 10f + offset;
+                    translation.Y = (float)y / 10f + offset;
                     vertices[index++] = new Resources.Shaders.TileInstanced(translation);
                 }
             }
+
 
             return vertices;
         }
