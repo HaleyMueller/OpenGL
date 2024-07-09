@@ -41,6 +41,7 @@ namespace OpenGL.App
         public BindlessTexture BindlessTexture;
 
         public TileGrid TileGrid;
+        public TileGameObject Tile;
 
         public Game(int width = 1280, int height = 768) : base(
             GameWindowSettings.Default, 
@@ -65,7 +66,7 @@ namespace OpenGL.App
         {
             if (this.CursorState == CursorState.Grabbed)
             {
-                MainCamera.ProcessMouseMovement(obj.DeltaX, obj.DeltaY);
+                //MainCamera.ProcessMouseMovement(obj.DeltaX, obj.DeltaY);
             }
         }
 
@@ -112,6 +113,8 @@ namespace OpenGL.App
             Stopwatch.Start();
 
             TileGrid = new TileGrid(10,10);
+            Tile = new TileGameObject(0, 0);
+            Tile.SetTileID(0);
 
             //Tile = new TileGameObject(0, 0);
             //Tile.SetTileID(0);
@@ -161,6 +164,9 @@ namespace OpenGL.App
             else if (_Game.IsKeyDown(Keys.D))
                 MainCamera.ProcessKeyboard(Camera.Camera_Movement.RIGHT, (float)args.Time);
 
+            if (_Game.MouseState.ScrollDelta != Vector2.Zero)
+                MainCamera.ProcessMouseScroll(_Game.MouseState.ScrollDelta.Y);
+
             base.OnUpdateFrame(args);
         }
 
@@ -195,6 +201,7 @@ namespace OpenGL.App
 
             //Draw Objects
             TileGrid.GPU_Use();
+            Tile.GPU_Use();
 
             GL.Clear(ClearBufferMask.DepthBufferBit); //Clear depth buffer for ui to be on top
 

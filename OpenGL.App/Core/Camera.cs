@@ -14,7 +14,7 @@ namespace OpenGL.App.Core
         const float PITCH = 0.0f;
         const float SPEED = 2.5f;
         const float SENSITIVITY = 0.1f;
-        const float ZOOM = 45.0f;
+        const float ZOOM = 1.0f;
 
         //Camera Attributes
         public Vector3 Position;
@@ -64,7 +64,8 @@ namespace OpenGL.App.Core
 
         public Matrix4 GetProjectionMatrix(int openGLWindowX, int openGLWindowY)
         {
-            return Matrix4.CreateOrthographic(((float)openGLWindowX / (float)openGLWindowY), 1, 0.01f, 100.0f);
+            return Matrix4.CreateOrthographic((float)openGLWindowX * (Zoom * .01f), (float)openGLWindowY * (Zoom * .01f), 0.01f, 100.0f);
+            //return Matrix4.CreateOrthographic(((float)openGLWindowX / (float)openGLWindowY), 1, 0.01f, 100.0f);
             //return Matrix4.CreateOrthographicOffCenter(0.0f, openGLWindowX, openGLWindowY, 0.0f, 0.1f, 100.0f);
             //return Matrix4.CreateOrthographicOffCenter(-openGLWindowX / 2.0f, openGLWindowX / 2.0f, -openGLWindowY / 2.0f, openGLWindowY / 2.0f, 0.0f, 1.0f);
             //return Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(FOV), openGLWindowX / openGLWindowY, .01f, 100f);
@@ -74,9 +75,9 @@ namespace OpenGL.App.Core
         {
             float velocity = MovementSpeed * deltaTime;
             if (direction == Camera_Movement.FORWARD)
-                Position += Front * velocity;
+                Position += Up * velocity;
             if (direction == Camera_Movement.BACKWARD)
-                Position -= Front * velocity;
+                Position -= Up * velocity;
             if (direction == Camera_Movement.LEFT)
                 Position -= Right * velocity;
             if (direction == Camera_Movement.RIGHT)
@@ -109,8 +110,8 @@ namespace OpenGL.App.Core
         public void ProcessMouseScroll(float yoffset)
         {
             Zoom -= (float)yoffset;
-            if (Zoom < 1.0f)
-                Zoom = 1.0f;
+            if (Zoom < 0f)
+                Zoom = 0.00001f;
             if (Zoom > 45.0f)
                 Zoom = 45.0f;
         }

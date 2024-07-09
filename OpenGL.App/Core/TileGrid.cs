@@ -52,7 +52,7 @@ namespace OpenGL.App.Core
             {
                 for (int j = 0; j < h; j++)
                 {
-                    TileGameObjects[i, j] = new TileGameObject(i, j);
+                    //TileGameObjects[i, j] = new TileGameObject(i, j);
                     //TileGameObjects[i, j].SetTileID(1);
                 }
             }
@@ -88,17 +88,30 @@ namespace OpenGL.App.Core
             //}
 
             int index = 0;
-            float offset = .1f;
-            for (int y = -10; y < 10; y += 2)
+            float offset = 1f;
+            for (int w = 0; w < Width; w++)
             {
-                for (int x = -10; x < 10; x += 2)
+                for (int h = 0; h < Height; h++)
                 {
                     Vector2 translation = new Vector2();
-                    translation.X = (float)x / 10f + offset;
-                    translation.Y = (float)y / 10f + offset;
+                    translation.X = (float)w  + offset;
+                    translation.Y = (float)h  + offset;
                     vertices[index++] = new Resources.Shaders.TileInstanced(translation);
                 }
             }
+
+            //int index = 0;
+            //float offset = .1f;
+            //for (int y = -10; y < 10; y += 2)
+            //{
+            //    for (int x = -10; x < 10; x += 2)
+            //    {
+            //        Vector2 translation = new Vector2();
+            //        translation.X = (float)x / 10f + offset;
+            //        translation.Y = (float)y / 10f + offset;
+            //        vertices[index++] = new Resources.Shaders.TileInstanced(translation);
+            //    }
+            //}
 
 
             return vertices;
@@ -164,7 +177,7 @@ namespace OpenGL.App.Core
             {
                 for (int j = 0; j < Height; j++)
                 {
-                    TileGameObjects[i, j].Dispose();
+                    TileGameObjects[i, j]?.Dispose();
                 }
             }
         }
