@@ -24,4 +24,21 @@ namespace OpenGL.App.Resources.Shaders
             Position = position;
         }
     }
+
+    public readonly struct TileInstancedTileID
+    {
+        public readonly float TextureID;
+
+        public static readonly VertexInfo VertexInfo =
+        new VertexInfo
+        (
+            typeof(TileInstancedTileID),
+            new VertexAttribute("aTextureID", 1, sizeof(float), 1)
+        );
+
+        public TileInstancedTileID(float textureID)
+        {
+            TextureID = textureID;
+        }
+    }
 }

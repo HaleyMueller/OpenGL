@@ -24,6 +24,9 @@ namespace OpenGL.App.Core
             0, 1, 2, 0, 2, 3
         };
 
+        private Resources.Shaders.TileInstancedTileID[] Tiles;
+        private VertexBuffer TileVertexBuffer;
+
         public TileGrid(int w, int h, bool isInstanced) : base()
         {
             Width = w;
@@ -41,12 +44,16 @@ namespace OpenGL.App.Core
             var offsetVertexBuffer = new VertexBuffer(Resources.Shaders.TileInstanced.VertexInfo, Width * Height, "Offsets");
             offsetVertexBuffer.SetData(offsets);
 
-            VertexArray = new VertexArray(new VertexBuffer[] { vertexBuffer, offsetVertexBuffer }, GetShaderProgram().ShaderProgramHandle);
+            Tiles = TileIDs();
+            TileVertexBuffer = new VertexBuffer(Resources.Shaders.TileInstancedTileID.VertexInfo, Width * Height, "TileIDs");
+            TileVertexBuffer.SetData(Tiles);
+
+            VertexArray = new VertexArray(new VertexBuffer[] { vertexBuffer, offsetVertexBuffer, TileVertexBuffer }, GetShaderProgram().ShaderProgramHandle);
 
             IndexBuffer = new IndexBuffer(Indices.Length, true);
             IndexBuffer.SetData(Indices, Indices.Length);
 
-            SetTileID(1);
+            //SetTileID(1);
 
             if (IsInstanced == false)
             {
@@ -75,6 +82,26 @@ namespace OpenGL.App.Core
             }
         }
 
+        /// <summary>
+        /// Updates a tile. Make sure to call SendTiles() when done
+        /// </summary>
+        public void UpdateTile(int w, int h, int tileID)
+        {
+            int index = w * Width + h;
+
+            var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileID, GetShaderProgram(), TextureData, true);
+
+            Tiles[index] = new Resources.Shaders.TileInstancedTileID(textureTileID);
+        }
+
+        /// <summary>
+        /// Sends the tile data to the gpu
+        /// </summary>
+        public void SendTiles()
+        {
+            TileVertexBuffer.SetData(Tiles);
+        }
+
         private Resources.Shaders.VertexPositionTexture[] ModelVertices()
         {
             var vertices = new Resources.Shaders.VertexPositionTexture[4];
@@ -83,6 +110,30 @@ namespace OpenGL.App.Core
             vertices[1] = new Resources.Shaders.VertexPositionTexture(new Vector2(0.5f, -0.5f), new Vector2(1, 0));
             vertices[2] = new Resources.Shaders.VertexPositionTexture(new Vector2(-0.5f, -0.5f), new Vector2(0, 0));
             vertices[3] = new Resources.Shaders.VertexPositionTexture(new Vector2(-0.5f, 0.5f), new Vector2(0, 1));
+
+            return vertices;
+        }
+
+        private Resources.Shaders.TileInstancedTileID[] TileIDs()
+        {
+            var vertices = new Resources.Shaders.TileInstancedTileID[Width * Height];
+
+            int index = 0;
+            float offset = 1f;
+            for (int w = 0; w < Width; w++)
+            {
+                for (int h = 0; h < Height; h++)
+                {
+                    Vector2 translation = new Vector2();
+                    translation.X = (float)w + offset;
+                    translation.Y = (float)h + offset;
+
+                    if (index % 2 == 0)
+                        vertices[index++] = new Resources.Shaders.TileInstancedTileID(1);
+                    else
+                        vertices[index++] = new Resources.Shaders.TileInstancedTileID(0);
+                }
+            }
 
             return vertices;
         }
@@ -100,7 +151,11 @@ namespace OpenGL.App.Core
                     Vector2 translation = new Vector2();
                     translation.X = (float)w + offset;
                     translation.Y = (float)h + offset;
-                    vertices[index++] = new Resources.Shaders.TileInstanced(translation);
+
+                    if (index % 2 == 0)
+                        vertices[index++] = new Resources.Shaders.TileInstanced(translation);
+                    else
+                        vertices[index++] = new Resources.Shaders.TileInstanced(translation);
                 }
             }
 
@@ -111,14 +166,6 @@ namespace OpenGL.App.Core
         {
             if (IsInstanced)
             {
-                foreach (Texture.Texture.TextureData textureData in TextureDatas.Values)
-                {
-                    foreach (var uniformKVP in textureData.SetUniformOnAdd)
-                    {
-                        GetShaderProgram().SetUniform(uniformKVP.Key, uniformKVP.Value);
-                    }
-                }
-
                 GPU_Use_Shader();
 
                 GPU_Use_Vertex();
@@ -137,33 +184,19 @@ namespace OpenGL.App.Core
 
         internal override void GPU_Use_Shader()
         {
-            GetShaderProgram().SetUniform("model", ModelView);
+            GetShaderProgram().SetUniform("model", ModelView); //TODO this is where we need to use the right arraytexture/bindless and bind it
             if (Game._Game.IsBindlessSupported) //Techincally not needed if we did program bindless lookup for bindless textures
             {
                 base.GPU_Use_Shader();
-                Game._Game.TileTextureFactory.GPU_Use(1, GetShaderProgram(), TextureData);
+                Game._Game.TileTextureFactory.GPU_Use(1, GetShaderProgram(), TextureData, true);
             }
             else
             {
-                Game._Game.TileTextureFactory.GPU_Use(1, GetShaderProgram(), TextureData);
+                Game._Game.TileTextureFactory.GPU_Use(3, GetShaderProgram(), TextureData, true);
                 base.GPU_Use_Shader();
             }
         }
         TextureData TextureData { get; set; }
-
-        public void SetTileID(int tileID)
-        {
-            TextureData = new TextureData() { SelectedTexture = tileID };
-
-            if (Game._Game.IsBindlessSupported)
-            {
-                TextureData.ShaderUniformLocation = GetShaderProgram().GetUniform("bindlessTexture").Location;
-            }
-            else
-            {
-                GetShaderProgram().SetUniform("selectedTexture", tileID);
-            }
-        }
 
         internal override void GPU_Use_Vertex()
         {

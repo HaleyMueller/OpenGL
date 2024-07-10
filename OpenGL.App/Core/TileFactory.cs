@@ -98,16 +98,27 @@ namespace OpenGL.App.Core
                 }
             }
 
-            public void GPU_Use(int tileID, ShaderProgram shaderProgram, Texture.Texture.TextureData textureData)
+            public int GetTextureTileIDByTileID(int tileID, ShaderProgram shaderProgram, Texture.Texture.TextureData textureData, bool isInstanced = false)
+            {
+                //Find what texture to use and what tileid
+                var tileTexture = TileTextures[tileID];
+
+                return tileTexture.TextureDepth;
+            }
+
+            public void GPU_Use(int tileID, ShaderProgram shaderProgram, Texture.Texture.TextureData textureData, bool isInstanced = false)
             {
                 //Find what texture to use and what tileid
                 var tileTexture = TileTextures[tileID];
                 var texture = Textures[tileTexture.TextureIndex];
 
-                if (Game._Game.IsBindlessSupported == false)
-                    shaderProgram.SetUniform("selectedTexture", tileTexture.TextureDepth);
-                else
-                    textureData.SelectedTexture = tileTexture.TextureDepth;
+                if (isInstanced == false)
+                {
+                    if (Game._Game.IsBindlessSupported == false)
+                        shaderProgram.SetUniform("selectedTexture", tileTexture.TextureDepth);
+                    else
+                        textureData.SelectedTexture = tileTexture.TextureDepth;
+                }
 
                 texture.GPU_Use(textureData);
             }

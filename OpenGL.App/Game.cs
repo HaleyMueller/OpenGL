@@ -93,7 +93,7 @@ namespace OpenGL.App
             MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
 
             #if DEBUG
-            IsBindlessSupported = true;
+            IsBindlessSupported = false;
             //MaxArrayTextureLayers = 2;
             #endif
 
@@ -112,7 +112,9 @@ namespace OpenGL.App
 
             Stopwatch.Start();
 
-            TileGrid = new TileGrid(100,100, false);
+            TileGrid = new TileGrid(100,100, true);
+            TileGrid.UpdateTile(1, 1, 3);
+            TileGrid.SendTiles();
             Tile = new TileGameObject(0, 0);
             Tile.SetTileID(0);
 
