@@ -87,7 +87,7 @@ namespace OpenGL.App.Core
         /// </summary>
         public void UpdateTile(int w, int h, int tileID)
         {
-            int index = w * Width + h;
+            int index = w * Height + h;
 
             var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileID, GetShaderProgram(), TextureData, true);
 

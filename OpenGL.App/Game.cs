@@ -44,7 +44,7 @@ namespace OpenGL.App
         public TileGameObject Tile;
 
         public Game(int width = 1280, int height = 768) : base(
-            GameWindowSettings.Default, 
+            GameWindowSettings.Default,
             new NativeWindowSettings()
             {
                 Title = "Title",
@@ -87,6 +87,23 @@ namespace OpenGL.App
 
         //public TileGameObject Tile;
 
+        public class Frame
+        {
+            public bool[,] Pixels { get; set; }
+        }
+
+        public class Video
+        {
+            public int Width { get; set; }
+            public int Height { get; set; }
+            public double FPS { get; set; }
+            public Frame[] Frames { get; set; }
+        }
+
+        public Video VideoFromFile;
+
+        public bool PlayVideo = true;
+
         protected override void OnLoad()
         {
             IsBindlessSupported = IsBindlessTextureSupported();
@@ -112,14 +129,32 @@ namespace OpenGL.App
 
             Stopwatch.Start();
 
-            TileGrid = new TileGrid(100,100, true);
-            TileGrid.UpdateTile(1, 1, 3);
-            TileGrid.SendTiles();
+            if (PlayVideo)
+            {
+                fmodSystem = FmodAudio.Fmod.CreateSystem();
+                fmodSystem.Init(32, FmodAudio.InitFlags.Normal);
+                sound = fmodSystem.CreateSound("Resources/Sounds/badapple.mp3");
+
+                Console.WriteLine("Loading video file...");
+
+                var fileContents = "";
+                using (StreamReader sr = new StreamReader("Resources/DumbStuff/badapple35.vid"))
+                {
+                    fileContents = sr.ReadToEnd();
+                }
+                Console.WriteLine("Making video file object...");
+                VideoFromFile = Newtonsoft.Json.JsonConvert.DeserializeObject<Video>(fileContents);
+                TileGrid = new TileGrid(VideoFromFile.Width, VideoFromFile.Height, true);
+
+                MainCamera = new Camera(new Vector3(80, 65, 3), null, zoom: 17);
+            }
+            else
+            {
+                TileGrid = new TileGrid(100, 100, true);
+            }
+
             Tile = new TileGameObject(0, 0);
             Tile.SetTileID(0);
-
-            //Tile = new TileGameObject(0, 0);
-            //Tile.SetTileID(0);
 
             GL.Enable(EnableCap.DepthTest);
 
@@ -146,13 +181,54 @@ namespace OpenGL.App
             TileGrid?.Dispose();
             ShaderFactory.Dispose();
 
+            if (PlayVideo)
+                fmodSystem.Release();
+
             base.OnUnload();
         }
 
+        int realFrameNumber = 0;
+        double frameNumber = 0;
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
+            if (PlayVideo)
+            {
+                if (frameNumber == 0)
+                {
+                    fmodSystem.PlaySound(sound);
+                }
+
+                fmodSystem.Update();
+                frameNumber = (frameNumber + (VideoFromFile.FPS * args.Time));
+
+                if (realFrameNumber != (int)frameNumber) //Brand new frame. Update the vbo
+                {
+                    realFrameNumber = (int)frameNumber;
+
+                    Console.WriteLine($"Frame: {frameNumber}");
+
+                    var frame = VideoFromFile.Frames[(int)frameNumber];
+
+                    for (int w = 0; w < VideoFromFile.Width; w++)
+                    {
+                        for (int h = 0; h < VideoFromFile.Height; h++)
+                        {
+                            var pixel = frame.Pixels[w, h];
+
+                            var width = (VideoFromFile.Width - w) - 1;
+                            var height = (VideoFromFile.Height - h) - 1;
+
+                            TileGrid.UpdateTile(w, height, (pixel ? 0 : 1));
+                        }
+                    }
+
+                    TileGrid.SendTiles();
+                }
+            }
+
+            #region Camera
             float cameraSpeed = (float)(1f * args.Time);
-            
+
             if (_Game.IsKeyPressed(Keys.Escape))
                 this.CursorState = this.CursorState == CursorState.Grabbed ? CursorState.Normal : CursorState.Grabbed;
 
@@ -168,6 +244,7 @@ namespace OpenGL.App
 
             if (_Game.MouseState.ScrollDelta != Vector2.Zero)
                 MainCamera.ProcessMouseScroll(_Game.MouseState.ScrollDelta.Y);
+            #endregion
 
             base.OnUpdateFrame(args);
         }
@@ -183,7 +260,7 @@ namespace OpenGL.App
             #region FPS
             timeSpans.Add(DateTime.Now.Ticks);
 
-            for (int i = timeSpans.Count-1; i >= 0; i--)
+            for (int i = timeSpans.Count - 1; i >= 0; i--)
             {
                 long tick = timeSpans[i];
 
@@ -210,7 +287,6 @@ namespace OpenGL.App
             GL.UseProgram(ShaderFactory.ShaderPrograms["TextShader.glsl"].ShaderProgramHandle);
             _font.RenderText($"FPS: {framesDuringLimit}", new Vector2(.5f, 12f), .25f, new Color4(1f, .8f, 1f, 1f));
             _font.RenderText($"IsBindlessSupported: {IsBindlessSupported}", new Vector2(.5f, 25f), .25f, new Color4(1f, .8f, 1f, 1f));
-            _font.RenderText("this is a test", new Vector2(this.Size.X/2, this.Size.Y / 2), 1f, new Color4(.1f, .8f, .1f, .15f));
 
             this.Context.SwapBuffers(); //Take back buffer into forground buffer
 

@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/OpenGL.App/Resources/DumbStuff/badapple25.vid
+/OpenGL.App/Resources/DumbStuff/badapple35.vid

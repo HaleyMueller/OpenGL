@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="FmodAudio" Version="2.2.5" />
     <PackageReference Include="FreeTypeSharp" Version="3.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenTK" Version="4.7.7" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
   </ItemGroup>
@@ -22,6 +23,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="fmod.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\DumbStuff\badapple25.vid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\DumbStuff\badapple35.vid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\Fonts\arial.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -80,6 +90,7 @@
 
   <ItemGroup>
     <Folder Include="Properties\" />
+    <Folder Include="Resources\DumbStuff\" />
   </ItemGroup>
 
 </Project>
