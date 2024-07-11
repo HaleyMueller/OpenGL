@@ -17,8 +17,10 @@ namespace OpenGL.App
             }
         }
 
+        public static float ScaleFactor;
         public static Video ExtractFrames(string videoPath, float scaleFactor)
         {
+            ScaleFactor = scaleFactor;
             var video = new Video();
             using (var capture = new VideoCapture(videoPath))
             {
