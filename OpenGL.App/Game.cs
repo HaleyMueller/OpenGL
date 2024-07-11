@@ -22,6 +22,7 @@ using OpenGL.App.Core;
 using OpenGL.App.Core.UniformBufferObject;
 using System.Security.Cryptography.X509Certificates;
 using OpenGL.App.GameObjects;
+using static OpenGL.App.FFMPEG;
 
 namespace OpenGL.App
 {
@@ -87,24 +88,13 @@ namespace OpenGL.App
 
         //public TileGameObject Tile;
 
-        public class Frame
-        {
-            public bool[,] Pixels { get; set; }
-        }
 
-        public class Video
-        {
-            public int Width { get; set; }
-            public int Height { get; set; }
-            public double FPS { get; set; }
-            public Frame[] Frames { get; set; }
-        }
 
         public Video VideoFromFile;
 
         public bool PlayVideo = true;
 
-        protected override void OnLoad()
+        protected override async void OnLoad()
         {
             IsBindlessSupported = IsBindlessTextureSupported();
             MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
@@ -136,7 +126,11 @@ namespace OpenGL.App
                 sound = fmodSystem.CreateSound("Resources/Sounds/badapple.mp3");
 
                 Console.WriteLine("Loading video file...");
-                VideoFromFile = Program.ExtractFrames("Resources/Videos/badapple.mp4", .25f);
+
+                FFMPEG fFMPEG = new FFMPEG();
+                VideoFromFile = await fFMPEG.MakeVideoIntoBitmaps("Resources/Videos/badapple.mp4", "tmp");
+
+                //VideoFromFile = Program.ExtractFrames("Resources/Videos/badapple.mp4", .25f);
                 TileGrid = new TileGrid(VideoFromFile.Width, VideoFromFile.Height, true);
                 
                 var x = VideoFromFile.Width / 2;

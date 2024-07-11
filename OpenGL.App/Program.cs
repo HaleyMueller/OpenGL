@@ -3,6 +3,7 @@ using System;
 using static OpenGL.App.Game;
 using System.Drawing;
 using System.Collections.Concurrent;
+using static OpenGL.App.FFMPEG;
 
 namespace OpenGL.App
 {
@@ -31,7 +32,7 @@ namespace OpenGL.App
                 }
 
                 video.FPS = capture.Fps;
-                video.Frames = new Frame[capture.FrameCount];
+                video.Frames = new Frame[capture.FrameCount];//new List<Frame>();// 
 
                 int frameNumber = 0;
                 Mat frame = new Mat();
