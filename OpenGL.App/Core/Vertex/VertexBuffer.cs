@@ -13,7 +13,7 @@ namespace OpenGL.App.Core.Vertex
     public sealed class VertexBuffer : IDisposable
     {
         public static readonly int MinVertexCount = 1;
-        public static readonly int MaxVertexCount = 100_000;
+        public static readonly int MaxVertexCount = 200_000;
         private bool IsDisposed;
 
         public readonly int VertexBufferHandle;

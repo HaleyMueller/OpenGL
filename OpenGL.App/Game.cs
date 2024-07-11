@@ -136,14 +136,14 @@ namespace OpenGL.App
                 sound = fmodSystem.CreateSound("Resources/Sounds/badapple.mp3");
 
                 Console.WriteLine("Loading video file...");
-
-                var fileContents = "";
-                using (StreamReader sr = new StreamReader("Resources/DumbStuff/badapple35.vid"))
-                {
-                    fileContents = sr.ReadToEnd();
-                }
-                Console.WriteLine("Making video file object...");
-                VideoFromFile = Newtonsoft.Json.JsonConvert.DeserializeObject<Video>(fileContents);
+                VideoFromFile = Program.ExtractFrames("Resources/Videos/badapple.mp4", 0.1f);
+                //var fileContents = "";
+                //using (StreamReader sr = new StreamReader("Resources/DumbStuff/badapple35.vid"))
+                //{
+                //    fileContents = sr.ReadToEnd();
+                //}
+                //Console.WriteLine("Making video file object...");
+                //VideoFromFile = Newtonsoft.Json.JsonConvert.DeserializeObject<Video>(fileContents);
                 TileGrid = new TileGrid(VideoFromFile.Width, VideoFromFile.Height, true);
 
                 MainCamera = new Camera(new Vector3(80, 65, 3), null, zoom: 17);
