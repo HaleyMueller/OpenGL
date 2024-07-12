@@ -138,15 +138,43 @@ namespace OpenGL.App
 
                 //ret.Frames = new Frame[bitmaps.Count];
 
-                var frames = (int)Math.Round((duration.TotalSeconds * ret.FPS), MidpointRounding.AwayFromZero);
+                var frames = (int)Math.Round((duration.TotalSeconds * ret.FPS), MidpointRounding.AwayFromZero) + (int)ret.FPS;
 
                 ret.Frames = new Frame[frames];
 
+                var largestFrame = bitmaps.OrderByDescending(x => x.index).FirstOrDefault();
+
                 foreach (var test in bitmaps)
                 {
+                    Console.WriteLine("trying: " + test.index);
                     ret.Frames[test.index] = new Frame();
                     ret.Frames[test.index].Pixels = test.Bools;
                 }
+
+                // Find the last non-null index
+                int lastIndex = -1;
+                for (int i = ret.Frames.Length - 1; i >= 0; i--)
+                {
+                    if (ret.Frames[i] != null)
+                    {
+                        lastIndex = i;
+                        break;
+                    }
+                }
+
+                // Create a new array up to the last non-null index
+                Frame[] resizedArray;
+                if (lastIndex != -1)
+                {
+                    resizedArray = new Frame[lastIndex + 1];
+                    Array.Copy(ret.Frames, resizedArray, lastIndex + 1);
+                }
+                else
+                {
+                    resizedArray = new Frame[0]; // No non-null elements found
+                }
+
+                ret.Frames = resizedArray;
 
                 Console.WriteLine($"Ended at {DateTime.Now.ToShortTimeString()}");
 
@@ -158,6 +186,22 @@ namespace OpenGL.App
             }
 
             return ret;
+        }
+
+        static string IsCloserToBlackOrWhite(int red, int green, int blue)
+        {
+            // Calculate luminance
+            double luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+
+            // Compare luminance to the threshold
+            if (luminance < 128)
+            {
+                return "black";
+            }
+            else
+            {
+                return "white";
+            }
         }
 
         public class Test
@@ -202,7 +246,7 @@ namespace OpenGL.App
                 for (int x = 0; x < width; x++)
                 {
                     Color pixelColor = frame.GetPixel(x, y);
-                    boolArray[x, y] = pixelColor.R == 255;
+                    boolArray[x, y] = IsCloserToBlackOrWhite(pixelColor.R, pixelColor.G, pixelColor.B) == "black" ? true: false;
                 }
             }
 
