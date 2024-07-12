@@ -132,6 +132,7 @@ namespace OpenGL.App
 
                 //VideoFromFile = Program.ExtractFrames("Resources/Videos/badapple.mp4", .25f);
                 TileGrid = new TileGrid(VideoFromFile.Width, VideoFromFile.Height, true);
+                System.Diagnostics.Debugger.Break();
                 
                 var x = VideoFromFile.Width / 2;
                 var y = VideoFromFile.Height / 2;
@@ -196,24 +197,31 @@ namespace OpenGL.App
                 {
                     realFrameNumber = (int)frameNumber;
 
-                    Console.WriteLine($"Frame: {frameNumber}");
-
-                    var frame = VideoFromFile.Frames[(int)frameNumber];
-
-                    for (int w = 0; w < VideoFromFile.Width; w++)
+                    if (realFrameNumber >= VideoFromFile.Frames.Length)
                     {
-                        for (int h = 0; h < VideoFromFile.Height; h++)
-                        {
-                            var pixel = frame.Pixels[w, h];
-
-                            var width = (VideoFromFile.Width - w) - 1;
-                            var height = (VideoFromFile.Height - h) - 1;
-
-                            TileGrid.UpdateTile(w, height, (pixel ? 0 : 1));
-                        }
+                        PlayVideo = false;
                     }
+                    else
+                    {
+                        Console.WriteLine($"Frame: {frameNumber}");
 
-                    TileGrid.SendTiles();
+                        var frame = VideoFromFile.Frames[(int)frameNumber];
+
+                        for (int w = 0; w < VideoFromFile.Width; w++)
+                        {
+                            for (int h = 0; h < VideoFromFile.Height; h++)
+                            {
+                                var pixel = frame.Pixels[w, h];
+
+                                var width = (VideoFromFile.Width - w) - 1;
+                                var height = (VideoFromFile.Height - h) - 1;
+
+                                TileGrid.UpdateTile(w, height, (pixel ? 5 : 4));
+                            }
+                        }
+
+                        TileGrid.SendTiles();
+                    }
                 }
             }
 
