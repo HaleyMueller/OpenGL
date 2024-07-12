@@ -20,7 +20,6 @@ namespace OpenGL.App
         {
             var vid = await _MakeVideoIntoBitmaps(videoPath, tempPath);
             return vid;
-            //GetVideoInfo(videoPath);
         }
 
         private async Task<Video> _MakeVideoIntoBitmaps(string videoPath, string tempPath)
@@ -36,6 +35,8 @@ namespace OpenGL.App
             process.StartInfo.CreateNoWindow = true;
 
             List<string> recheckFiles = new List<string>();
+
+            TimeSpan duration = TimeSpan.MinValue;
 
             // Capture standard output and error
             process.OutputDataReceived += (sender, e) =>
@@ -58,6 +59,8 @@ namespace OpenGL.App
                             }
                         }
 
+                        
+
                         if (ret.Height == 0)
                         {
                             var match = Regex.Match(e.Data, @"\b(\d{2,4}x\d{2,4})\b");
@@ -71,23 +74,13 @@ namespace OpenGL.App
                         }
                     }
 
-                    //var frameIndex = ExtractValue(e.Data, "frame");
-
-                    //if (frameIndex != -1)
-                    //{
-                    //    var bmpPath = @$"{tempPath}/$filename{frameIndex}.bmp";
-                    //    var byteArray = ReadBitmapFromOutput(bmpPath, ret.Width, ret.Height);
-
-                    //    if (byteArray == null)
-                    //        recheckFiles.Add(bmpPath);
-                    //    else
-                    //    {
-                    //        var frame = new Frame();
-                    //        frame.Pixels = byteArray.Result;
-
-                    //        ret.Frames[frameIndex - 1] = frame;
-                    //    }
-                    //}
+                    if (e.Data.Contains("Duration"))
+                    {
+                        if (ParseDuration(e.Data) != TimeSpan.MinValue)
+                        {
+                            duration = ParseDuration(e.Data);
+                        }
+                    }
                 }
             };
 
@@ -143,32 +136,17 @@ namespace OpenGL.App
                     }
                 });
 
-                ret.Frames = new Frame[bitmaps.Count];
+                //ret.Frames = new Frame[bitmaps.Count];
+
+                var frames = (int)Math.Round((duration.TotalSeconds * ret.FPS), MidpointRounding.AwayFromZero);
+
+                ret.Frames = new Frame[frames];
 
                 foreach (var test in bitmaps)
                 {
                     ret.Frames[test.index] = new Frame();
                     ret.Frames[test.index].Pixels = test.Bools;
                 }
-
-                //foreach (var file in Directory.GetFiles("tmp", "*.bmp"))
-                //{
-                //    var frameNumber = 0;
-                //    var match = Regex.Match(file, "-?\\d+\\.?\\d*");
-                //    if (match.Success)
-                //    {
-                //        frameNumber = int.Parse(match.Groups[0].Value.Replace(".", ""));
-                //    }
-                //    else
-                //    {
-                //        Console.WriteLine("Couldn't find frame number for: " + file);
-                //    }
-
-                //    var boolArray = ConvertFrameToBoolArray(new Bitmap(file), frameNumber);
-
-                //    ret.Frames[frameNumber] = new Frame();
-                //    ret.Frames[frameNumber].Pixels = boolArray;
-                //}
 
                 Console.WriteLine($"Ended at {DateTime.Now.ToShortTimeString()}");
 
@@ -186,6 +164,30 @@ namespace OpenGL.App
         {
             public bool[,] Bools { get; set; }
             public int index { get; set; }
+        }
+
+        static TimeSpan ParseDuration(string ffmpegOutput)
+        {
+            // Regular expression to match the duration information
+            Regex durationRegex = new Regex(@"Duration: (\d{2}):(\d{2}):(\d{2})\.(\d{2})", RegexOptions.Compiled);
+            Match match = durationRegex.Match(ffmpegOutput);
+
+            if (match.Success)
+            {
+                int hours = int.Parse(match.Groups[1].Value);
+                int minutes = int.Parse(match.Groups[2].Value);
+                int seconds = int.Parse(match.Groups[3].Value);
+                int milliseconds = int.Parse(match.Groups[4].Value);
+
+                return new TimeSpan(0, hours, minutes, seconds, milliseconds);
+
+                double totalSeconds = hours * 3600 + minutes * 60 + seconds + milliseconds / 100.0;
+                //return totalSeconds.ToString();
+            }
+            else
+            {
+                throw new FormatException("Duration information not found in FFmpeg output.");
+            }
         }
 
         static bool[,] ConvertFrameToBoolArray(Bitmap frame, int frameNumber)
