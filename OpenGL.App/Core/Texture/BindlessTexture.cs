@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL;
 using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 using System.Reflection.Metadata;
+using OpenGL.App.Core.SSBO;
+using static OpenGL.App.Core.SSBO.SSBOFactory;
 
 namespace OpenGL.App.Core.Texture
 {
@@ -33,12 +35,25 @@ namespace OpenGL.App.Core.Texture
 
         private void CreateBindlessTextures()
         {
+            var tileIDs = new Resources.Shaders.BindlessTexture[BindlessTextureHandles.Count];
+            int index = 0;
             foreach (var texture in BindlessTextureHandles)
             {
                 GL.BindTexture(TextureTarget.Texture2D, texture.TextureHandle);
                 texture.BindlessHandle = GL.Arb.GetTextureHandle(texture.TextureHandle);
                 GL.Arb.MakeTextureHandleResident(texture.BindlessHandle);
+
+                tileIDs[index] = new Resources.Shaders.BindlessTexture(texture.BindlessHandle);
+                index++;
             }
+
+            
+
+
+            var ubObject = new SSBOObject(Resources.Shaders.BindlessTexture.VertexInfo, tileIDs.Length, "BindlessTileset", SSBOIndex.BindlessTileset, false);
+            var ssbo = new BindlessTileset(ubObject);
+            ubObject.SetData(tileIDs);
+            SSBOs.Add(SSBOIndex.BindlessTileset, ssbo);
         }
 
         private void LoadTextures(string directory)

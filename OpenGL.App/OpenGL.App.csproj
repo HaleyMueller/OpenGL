@@ -76,6 +76,9 @@
     <None Update="Resources\Shaders\TextShader.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\Shaders\TileInstancedSSBO.glsl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\Shaders\TileInstanced.glsl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

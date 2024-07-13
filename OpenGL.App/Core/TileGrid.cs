@@ -33,7 +33,7 @@ namespace OpenGL.App.Core
             Height = h;
             IsInstanced = isInstanced;
 
-            base.ShaderFactoryID = "TileInstanced.glsl";
+            base.ShaderFactoryID = "TileInstancedSSBO.glsl";
 
             var vertices = ModelVertices();
 
@@ -187,8 +187,8 @@ namespace OpenGL.App.Core
             GetShaderProgram().SetUniform("model", ModelView); //TODO this is where we need to use the right arraytexture/bindless and bind it
             if (Game._Game.IsBindlessSupported) //Techincally not needed if we did program bindless lookup for bindless textures
             {
-                base.GPU_Use_Shader();
-                Game._Game.TileTextureFactory.GPU_Use(1, GetShaderProgram(), TextureData, true);
+                //base.GPU_Use_Shader();
+                //Game._Game.TileTextureFactory.GPU_Use(1, GetShaderProgram(), TextureData, true);
             }
             else
             {

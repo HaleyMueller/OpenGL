@@ -23,6 +23,7 @@ using OpenGL.App.Core.UniformBufferObject;
 using System.Security.Cryptography.X509Certificates;
 using OpenGL.App.GameObjects;
 using static OpenGL.App.FFMPEG;
+using OpenGL.App.Core.SSBO;
 
 namespace OpenGL.App
 {
@@ -33,6 +34,7 @@ namespace OpenGL.App
         public Camera MainCamera;
 
         public UniformBufferObjectFactory UBOFactory { get; private set; }
+        public SSBOFactory SSBOFactory { get; private set; }
         public ShaderFactory ShaderFactory { get; private set; }
         public TileFactory TileFactory { get; private set; }
         public TileFactory.TileTextureFactory TileTextureFactory { get; private set; }
@@ -92,7 +94,7 @@ namespace OpenGL.App
 
         public Video VideoFromFile;
 
-        public bool PlayVideo = true;
+        public bool PlayVideo = false;
 
         protected override async void OnLoad()
         {
@@ -100,7 +102,7 @@ namespace OpenGL.App
             MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
 
             #if DEBUG
-            IsBindlessSupported = false;
+            //IsBindlessSupported = false;
             //MaxArrayTextureLayers = 2;
             #endif
 
@@ -109,6 +111,7 @@ namespace OpenGL.App
             GL.ClearColor(Color4.DarkCyan); //Set up clear color
 
             UBOFactory = new UniformBufferObjectFactory();
+            SSBOFactory = new SSBOFactory();
             ShaderFactory = new ShaderFactory();
             TileFactory = new TileFactory();
             TileTextureFactory = new TileFactory.TileTextureFactory(TileFactory);
