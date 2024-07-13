@@ -33,7 +33,7 @@ namespace OpenGL.App.Core
             Height = h;
             IsInstanced = isInstanced;
 
-            base.ShaderFactoryID = "TileInstancedSSBO.glsl";
+            base.ShaderFactoryID = "TileInstanced.glsl";
 
             var vertices = ModelVertices();
 
