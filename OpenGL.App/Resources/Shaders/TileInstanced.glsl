@@ -25,12 +25,10 @@ void main() {
 
 #FragmentShader
 #version 430
-#extension GL_ARB_bindless_texture : require
+#BindlessExtenstion
 
 layout(location = 0) out vec4 color;
-layout(std430, binding = 0) restrict readonly buffer TextureSSBO {
-    uvec2 Textures[];
-} textureSSBO;
+#SSBOBindlessTextureArray
 
 in vec2 f_uv;
 in float textureID;
@@ -39,5 +37,5 @@ uniform float selectedTexture;
 
 void main()
 {
-    color = texture(u_tex, vec3(f_uv.x, f_uv.y, textureID));
+    color = #TextureIDToColor
 }

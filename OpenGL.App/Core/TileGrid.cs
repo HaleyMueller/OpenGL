@@ -9,6 +9,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using static OpenGL.App.Core.Texture.Texture;
 using static OpenGL.App.Core.TileFactory;
+using OpenGL.App.Core.Texture;
 
 namespace OpenGL.App.Core
 {
@@ -129,9 +130,15 @@ namespace OpenGL.App.Core
                     translation.Y = (float)h + offset;
 
                     if (index % 2 == 0)
-                        vertices[index++] = new Resources.Shaders.TileInstancedTileID(1);
+                    {
+                        var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(1, GetShaderProgram(), TextureData, true);
+                        vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID);
+                    }
                     else
-                        vertices[index++] = new Resources.Shaders.TileInstancedTileID(0);
+                    {
+                        var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(0, GetShaderProgram(), TextureData, true);
+                        vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID);
+                    }
                 }
             }
 
@@ -184,11 +191,10 @@ namespace OpenGL.App.Core
 
         internal override void GPU_Use_Shader()
         {
-            GetShaderProgram().SetUniform("model", ModelView); //TODO this is where we need to use the right arraytexture/bindless and bind it
-            if (Game._Game.IsBindlessSupported) //Techincally not needed if we did program bindless lookup for bindless textures
+            GetShaderProgram().SetUniform("model", ModelView);
+            if (Game._Game.IsBindlessSupported)
             {
-                //base.GPU_Use_Shader();
-                //Game._Game.TileTextureFactory.GPU_Use(1, GetShaderProgram(), TextureData, true);
+                base.GPU_Use_Shader();
             }
             else
             {

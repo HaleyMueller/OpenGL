@@ -317,11 +317,21 @@ namespace OpenGL.App.Core.Shader
                 {
                     pixelShader = pixelShader.Replace("#BindlessFallbackCreateUniform", "uniform sampler2D bindlessTexture;");
                     pixelShader = pixelShader.Replace("#BindlessFallbackCreateTexture", "texture(bindlessTexture, f_uv);");
+
+                    pixelShader = pixelShader.Replace("#BindlessExtenstion", "#extension GL_ARB_bindless_texture : require");
+                    pixelShader = pixelShader.Replace("#SSBOBindlessTextureArray", @"layout(std430, binding = 0) restrict readonly buffer TextureSSBO {
+                                                                                            sampler2D Textures[];
+                                                                                        } textureSSBO;");
+                    pixelShader = pixelShader.Replace("#TextureIDToColor", @"texture(textureSSBO.Textures[int(textureID)], vec2(f_uv.x, f_uv.y));");
                 }
                 else
                 {
                     pixelShader = pixelShader.Replace("#BindlessFallbackCreateUniform", "uniform sampler2DArray u_tex;\r\nuniform float selectedTexture;");
                     pixelShader = pixelShader.Replace("#BindlessFallbackCreateTexture", " texture(u_tex, vec3(f_uv.x, f_uv.y, selectedTexture));");
+
+                    pixelShader = pixelShader.Replace("#BindlessExtenstion", "");
+                    pixelShader = pixelShader.Replace("#SSBOBindlessTextureArray", @"");
+                    pixelShader = pixelShader.Replace("#TextureIDToColor", @"texture(u_tex, vec3(f_uv.x, f_uv.y, textureID));");
                 }
 
                 if (string.IsNullOrEmpty(vertexShader) || string.IsNullOrEmpty(pixelShader))

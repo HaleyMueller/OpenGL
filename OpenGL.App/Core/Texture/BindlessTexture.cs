@@ -44,11 +44,12 @@ namespace OpenGL.App.Core.Texture
                 GL.Arb.MakeTextureHandleResident(texture.BindlessHandle);
 
                 tileIDs[index] = new Resources.Shaders.BindlessTexture(texture.BindlessHandle);
+                
+
+                Console.WriteLine($"Got bindless handle for texture: {TextureFiles[index]} {texture.BindlessHandle}");
+
                 index++;
             }
-
-            
-
 
             var ubObject = new SSBOObject(Resources.Shaders.BindlessTexture.VertexInfo, tileIDs.Length, "BindlessTileset", SSBOIndex.BindlessTileset, false);
             var ssbo = new BindlessTileset(ubObject);
