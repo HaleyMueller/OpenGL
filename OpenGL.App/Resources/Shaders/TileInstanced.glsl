@@ -1,5 +1,5 @@
 #VertexShader
-#version 330 core
+#version 430 core
 
 layout( location = 0)in vec2 Position;
 layout( location = 1 )in vec2 TexCoord;
@@ -24,9 +24,13 @@ void main() {
 };
 
 #FragmentShader
-#version 330 core
+#version 430
+#extension GL_ARB_bindless_texture : require
 
 layout(location = 0) out vec4 color;
+layout(std430, binding = 0) restrict readonly buffer TextureSSBO {
+    uvec2 Textures[];
+} textureSSBO;
 
 in vec2 f_uv;
 in float textureID;

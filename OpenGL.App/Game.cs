@@ -24,6 +24,8 @@ using System.Security.Cryptography.X509Certificates;
 using OpenGL.App.GameObjects;
 using static OpenGL.App.FFMPEG;
 using OpenGL.App.Core.SSBO;
+using static OpenGL.App.Core.SSBO.SSBOFactory;
+using static OpenGL.App.Core.Texture.BindlessTexture;
 
 namespace OpenGL.App
 {
@@ -102,7 +104,7 @@ namespace OpenGL.App
             MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
 
             #if DEBUG
-            //IsBindlessSupported = false;
+            IsBindlessSupported = false;
             //MaxArrayTextureLayers = 2;
             #endif
 
@@ -146,6 +148,20 @@ namespace OpenGL.App
             else
             {
                 TileGrid = new TileGrid(100, 100, true);
+            }
+
+            if (IsBindlessSupported == false)
+            {
+                var tileIDs = new Resources.Shaders.BindlessTexture[3];
+                tileIDs[0] = new Resources.Shaders.BindlessTexture(10230498);
+                tileIDs[1] = new Resources.Shaders.BindlessTexture(10230493);
+                tileIDs[2] = new Resources.Shaders.BindlessTexture(10230495);
+
+                var ubObject = new SSBOObject(Resources.Shaders.BindlessTexture.VertexInfo, tileIDs.Length, "BindlessTileset", SSBOIndex.BindlessTileset, false);
+                var ssbo = new BindlessTileset(ubObject);
+                ubObject.SetData(tileIDs);
+                SSBOs.Add(SSBOIndex.BindlessTileset, ssbo);
+                Console.WriteLine($"SSBO Handle: " + ubObject.ShaderStorageBufferHandle);
             }
 
             Tile = new TileGameObject(0, 0);
@@ -289,6 +305,7 @@ namespace OpenGL.App
             GL.UseProgram(ShaderFactory.ShaderPrograms["TextShader.glsl"].ShaderProgramHandle);
             _font.RenderText($"FPS: {framesDuringLimit}", new Vector2(.5f, 12f), .25f, new Color4(1f, .8f, 1f, 1f));
             _font.RenderText($"IsBindlessSupported: {IsBindlessSupported}", new Vector2(.5f, 25f), .25f, new Color4(1f, .8f, 1f, 1f));
+            _font.RenderText($"SSBO Handle: {SSBOFactory.SSBOs[SSBOIndex.BindlessTileset].SSBOObject.ShaderStorageBufferHandle}", new Vector2(.5f, 40f), .25f, new Color4(1f, .8f, 1f, 1f));
 
             this.Context.SwapBuffers(); //Take back buffer into forground buffer
 

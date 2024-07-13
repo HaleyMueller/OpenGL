@@ -51,7 +51,7 @@ namespace OpenGL.App.Core.SSBO
             GL.BufferData(BufferTarget.ShaderStorageBuffer, VertexCount * VertexInfo.SizeInBytes, nint.Zero, hint); //Se how many bytes the data will be on the gpu through the buffer
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, 0); //Bind buffer to 0 to make sure it is done
 
-            GL.BindBufferRange(BufferRangeTarget.ShaderStorageBuffer, (int)uboIndex, ShaderStorageBufferHandle, 0, vertexInfo.SizeInBytes);
+            GL.BindBufferRange(BufferRangeTarget.ShaderStorageBuffer, (int)uboIndex, ShaderStorageBufferHandle, 0, vertexCount * vertexInfo.SizeInBytes);
         }
 
         //This sets the data of the vertex handle, which means you can edit the data in real time to move stuff
