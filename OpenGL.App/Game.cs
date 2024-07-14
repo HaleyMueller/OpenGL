@@ -104,7 +104,7 @@ namespace OpenGL.App
             MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
 
             #if DEBUG
-            //IsBindlessSupported = false;
+            IsBindlessSupported = false;
             //MaxArrayTextureLayers = 2;
             #endif
 
@@ -221,7 +221,7 @@ namespace OpenGL.App
                                 var width = (VideoFromFile.Width - w) - 1;
                                 var height = (VideoFromFile.Height - h) - 1;
 
-                                TileGrid.UpdateTile(w, height, (pixel ? 5 : 4));
+                                TileGrid.UpdateTile(w, height, (pixel ? 6 : 4));
                             }
                         }
 

@@ -15,14 +15,17 @@ namespace OpenGL.App.Core
         public Tile[] Tiles { get; set; }
         public TileFactory() 
         {
-            Tiles = new Tile[6]; //TODO make this create from json by name and then map it to int id
+            Tiles = new Tile[7]; //TODO make this create from json by name and then map it to int id
             Tiles[0] = new Tile() { Name = "dirt"};
             Tiles[1] = new Tile() { Name = "sand"};
             Tiles[2] = new Tile() { Name = "stone"};
             Tiles[3] = new Tile() { Name = "spruce_leaves"};
             Tiles[4] = new Tile() { Name = "quartz_block_top" };
             Tiles[5] = new Tile() { Name = "coal_block" };
+            Tiles[6] = new Tile() { Name = "deepslate" };
         }
+
+        public const int TileResolution = 2;
 
         public class TileTextureFactory
         {
@@ -69,12 +72,17 @@ namespace OpenGL.App.Core
                 }
                 else //Create texture arrays
                 {
+                    if (TileResolution % 2 != 0)
+                    {
+                        throw new Exception("Tile Resolution has to be a multiple of 2.");
+                    }
+
                     var textureArraysNeeded = Math.Round((decimal)TileFactory.Tiles.Length / Game._Game.MaxArrayTextureLayers, MidpointRounding.ToPositiveInfinity); //How many texture arrays do we need?
 
                     int fileOffset = 0;
                     for (int i = 0; i < textureArraysNeeded; i++)
                     {
-                        var textureArray = new TextureArray("Resources/Textures", Game._Game.MaxArrayTextureLayers, fileOffset);
+                        var textureArray = new TextureArray("Resources/Textures", Game._Game.MaxArrayTextureLayers, fileOffset, resolution: TileResolution);
                         fileOffset += textureArray.TextureFiles.Length;
                         Textures.Add(textureArray);
 
