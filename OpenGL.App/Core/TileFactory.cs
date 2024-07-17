@@ -16,16 +16,17 @@ namespace OpenGL.App.Core
         public TileFactory() 
         {
             Tiles = new Tile[7]; //TODO make this create from json by name and then map it to int id
-            Tiles[0] = new Tile() { Name = "dirt"};
-            Tiles[1] = new Tile() { Name = "sand"};
-            Tiles[2] = new Tile() { Name = "stone"};
-            Tiles[3] = new Tile() { Name = "spruce_leaves"};
-            Tiles[4] = new Tile() { Name = "quartz_block_top" };
-            Tiles[5] = new Tile() { Name = "coal_block" };
-            Tiles[6] = new Tile() { Name = "deepslate" };
+            Tiles[0] = new Tile() { Name = "air"};
+            Tiles[1] = new Tile() { Name = "dirt"};
+            Tiles[2] = new Tile() { Name = "sand"};
+            Tiles[3] = new Tile() { Name = "stone"};
+            Tiles[4] = new Tile() { Name = "spruce_leaves"};
+            Tiles[5] = new Tile() { Name = "quartz_block_top" };
+            Tiles[6] = new Tile() { Name = "coal_block" };
+            //Tiles[7] = new Tile() { Name = "deepslate" };
         }
 
-        public const int TileResolution = 2;
+        public const int TileResolution = 16;
 
         public class TileTextureFactory
         {
@@ -108,12 +109,39 @@ namespace OpenGL.App.Core
                 }
             }
 
-            public int GetTextureTileIDByTileID(int tileID, ShaderProgram shaderProgram, Texture.Texture.TextureData textureData, bool isInstanced = false)
+            /// <summary>
+            /// Returns the texture tile index in relation to game tile id
+            /// </summary>
+            public int GetTextureTileIDByTileID(int tileID)
             {
                 //Find what texture to use and what tileid
                 var tileTexture = TileTextures[tileID];
 
                 return tileTexture.TextureDepth;
+            }
+
+            public List<int> GetTextureIndicesForTileIDs(int[,] tileIDs)
+            {
+                var ret = new List<int>();
+
+                for (int x = 0; x < tileIDs.GetLength(0); x++)
+                {
+                    for (int y = 0; y < tileIDs.GetLength(1); y++)
+                    {
+                        var tileTexture = TileTextures[tileIDs[x, y]]; //Grab tileID
+                        ret.Add(tileTexture.TextureIndex);
+                    }
+                }
+
+                ret = ret.Distinct().ToList();
+
+                return ret;
+            }
+
+            public int GetTextureTileIndexByTileID(int tileID)
+            {
+                var tileTexture = TileTextures[tileID]; //Grab tileID
+                return tileTexture.TextureIndex;
             }
 
             public void GPU_Use(int tileID, ShaderProgram shaderProgram, Texture.Texture.TextureData textureData, bool isInstanced = false)

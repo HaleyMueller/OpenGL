@@ -28,11 +28,44 @@ namespace OpenGL.App.Core
         private Resources.Shaders.TileInstancedTileID[] Tiles;
         private VertexBuffer TileVertexBuffer;
 
-        public TileGrid(int w, int h, bool isInstanced) : base()
+        public int TileFactoryTextureID { get; private set; }
+
+        public TileGrid(int[,] data, bool isInstanced, int tileFactoryTextureID) : base()
+        {
+            Width = data.GetLength(0);
+            Height = data.GetLength(1);
+            IsInstanced = isInstanced;
+            TileFactoryTextureID = tileFactoryTextureID;
+
+            base.ShaderFactoryID = "TileInstanced.glsl";
+
+            var vertices = ModelVertices();
+
+            var vertexBuffer = new VertexBuffer(Resources.Shaders.VertexPositionTexture.VertexInfo, vertices.Length, "PositionAndTexture", true);
+            vertexBuffer.SetData(vertices, vertices.Length);
+
+            var offsets = OffsetPosition();
+            var offsetVertexBuffer = new VertexBuffer(Resources.Shaders.TileInstanced.VertexInfo, Width * Height, "Offsets");
+            offsetVertexBuffer.SetData(offsets);
+
+
+
+            Tiles = TileIDs(data);
+            TileVertexBuffer = new VertexBuffer(Resources.Shaders.TileInstancedTileID.VertexInfo, Width * Height, "TileIDs");
+            TileVertexBuffer.SetData(Tiles);
+
+            VertexArray = new VertexArray(new VertexBuffer[] { vertexBuffer, offsetVertexBuffer, TileVertexBuffer }, GetShaderProgram().ShaderProgramHandle);
+
+            IndexBuffer = new IndexBuffer(Indices.Length, true);
+            IndexBuffer.SetData(Indices, Indices.Length);
+        }
+
+        public TileGrid(int w, int h, bool isInstanced, int tileFactoryTextureID) : base()
         {
             Width = w;
             Height = h;
             IsInstanced = isInstanced;
+            TileFactoryTextureID = tileFactoryTextureID;
 
             base.ShaderFactoryID = "TileInstanced.glsl";
 
@@ -90,7 +123,7 @@ namespace OpenGL.App.Core
         {
             int index = w * Height + h;
 
-            var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileID, GetShaderProgram(), TextureData, true);
+            var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileID);
 
             Tiles[index] = new Resources.Shaders.TileInstancedTileID(textureTileID);
         }
@@ -115,6 +148,23 @@ namespace OpenGL.App.Core
             return vertices;
         }
 
+        private Resources.Shaders.TileInstancedTileID[] TileIDs(int[,] tileData)
+        {
+            var vertices = new Resources.Shaders.TileInstancedTileID[Width * Height];
+
+            int index = 0;
+            for (int w = 0; w < Width; w++)
+            {
+                for (int h = 0; h < Height; h++)
+                {
+                    var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileData[w, h]);
+                    vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID);
+                }
+            }
+
+            return vertices;
+        }
+
         private Resources.Shaders.TileInstancedTileID[] TileIDs()
         {
             var vertices = new Resources.Shaders.TileInstancedTileID[Width * Height];
@@ -131,12 +181,12 @@ namespace OpenGL.App.Core
 
                     if (index % 2 == 0)
                     {
-                        var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(1, GetShaderProgram(), TextureData, true);
+                        var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(1);
                         vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID);
                     }
                     else
                     {
-                        var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(0, GetShaderProgram(), TextureData, true);
+                        var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(0);
                         vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID);
                     }
                 }
@@ -198,7 +248,7 @@ namespace OpenGL.App.Core
             }
             else
             {
-                Game._Game.TileTextureFactory.GPU_Use(3, GetShaderProgram(), TextureData, true);
+                Game._Game.TileTextureFactory.GPU_Use(TileFactoryTextureID, GetShaderProgram(), TextureData, true);
                 base.GPU_Use_Shader();
             }
         }

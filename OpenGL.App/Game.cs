@@ -45,7 +45,6 @@ namespace OpenGL.App
         public TextureArray TextureArray;
         public BindlessTexture BindlessTexture;
 
-        public TileGrid TileGrid;
         public TileGameObject Tile;
 
         public Game(int width = 1280, int height = 768) : base(
@@ -96,7 +95,9 @@ namespace OpenGL.App
 
         public Video VideoFromFile;
 
-        public bool PlayVideo = true;
+        public bool PlayVideo = false;
+
+        public TileGridLayer TileGridLayer;
 
         protected override async void OnLoad()
         {
@@ -105,7 +106,7 @@ namespace OpenGL.App
 
             #if DEBUG
             IsBindlessSupported = false;
-            //MaxArrayTextureLayers = 2;
+            MaxArrayTextureLayers = 2;
             #endif
 
             this.IsVisible = true;
@@ -136,7 +137,6 @@ namespace OpenGL.App
                 VideoFromFile = await fFMPEG.MakeVideoIntoBitmaps("Resources/Videos/badapple.mp4", "tmp");
 
                 //VideoFromFile = Program.ExtractFrames("Resources/Videos/badapple.mp4", .25f);
-                TileGrid = new TileGrid(VideoFromFile.Width, VideoFromFile.Height, true);
                 System.Diagnostics.Debugger.Break();
                 
                 var x = VideoFromFile.Width / 2;
@@ -147,7 +147,15 @@ namespace OpenGL.App
             }
             else
             {
-                TileGrid = new TileGrid(100, 100, true);
+
+                int[,] tileGridLayerData =
+                {
+                    { 1, 2, 3 },
+                    { 3, 2, 1 },
+                    { 1, 1, 1 }
+                };
+
+                TileGridLayer = new TileGridLayer(0, tileGridLayerData);
             }
 
             Tile = new TileGameObject(0, 0);
@@ -175,7 +183,6 @@ namespace OpenGL.App
         protected override void OnUnload()
         {
             //Removing everything
-            TileGrid?.Dispose();
             ShaderFactory.Dispose();
 
             if (PlayVideo)
@@ -221,11 +228,11 @@ namespace OpenGL.App
                                 var width = (VideoFromFile.Width - w) - 1;
                                 var height = (VideoFromFile.Height - h) - 1;
 
-                                TileGrid.UpdateTile(w, height, (pixel ? 6 : 4));
+                                //TileGrid.UpdateTile(w, height, (pixel ? 6 : 4));
                             }
                         }
 
-                        TileGrid.SendTiles();
+                        //TileGrid.SendTiles();
                     }
                 }
             }
@@ -283,7 +290,8 @@ namespace OpenGL.App
             UniformBufferObjectFactory.UniformBufferObjects[UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix].GPU_Use();
 
             //Draw Objects
-            TileGrid.GPU_Use();
+            TileGridLayer.GPU_Use();
+            //TileGrid.GPU_Use();
             Tile.GPU_Use();
 
             GL.Clear(ClearBufferMask.DepthBufferBit); //Clear depth buffer for ui to be on top
