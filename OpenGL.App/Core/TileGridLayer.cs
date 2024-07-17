@@ -31,7 +31,7 @@ namespace OpenGL.App.Core
             if (Game._Game.IsBindlessSupported)
             {
                 TileGrids = new TileGrid[1];
-                TileGrids[0] = new TileGrid(gridData, true, 0);
+                //TileGrids[0] = new TileGrid(gridData, true, 0);
             }
             else
             {
@@ -45,20 +45,35 @@ namespace OpenGL.App.Core
 
                     CopyMultiDimensionalArray(gridData, newGridData);
 
+                    var tileData = new TileGrid.TileData[gridData.GetLength(0), gridData.GetLength(1)];
+
+
                     int index = 0;
-                    for (int w = 0; w < newGridData.GetLength(0); w++)
+                    for (int w = 0; w < gridData.GetLength(0); w++)
                     {
-                        for (int h = 0; h < newGridData.GetLength(1); h++)
+                        for (int h = 0; h < gridData.GetLength(1); h++)
                         {
-                            var textureTileID = Game._Game.TileTextureFactory.TileTextures[newGridData[w, h]].TextureIndex;
+                            tileData[w, h] = new TileGrid.TileData();
+
+                            var textureTileID = Game._Game.TileTextureFactory.TileTextures[gridData[w, h]].TextureIndex;
                             if (textureTileID != textureID)
                             {
-                                newGridData[w, h] = 0;
+                                tileData[w, h].IsVisible = false;
+                                tileData[w, h].TileID = 0;
                             }
+                            else
+                            {
+                                tileData[w, h].IsVisible = true;
+                                tileData[w, h].TileID = gridData[w, h];
+                            }
+                            
                         }
                     }
 
-                    TileGrids[i] = new TileGrid(newGridData, true, textureID);
+                    TileGrids[i] = new TileGrid(tileData, true, textureID);
+                    //TileGrids[i].Position.X = i*3;
+                    //TileGrids[i].Position.Y = i*3;
+                    TileGrids[i].Position.Z = i * .5f;
                     i++;
                 }
             }
@@ -68,6 +83,8 @@ namespace OpenGL.App.Core
 
         public void GPU_Use()
         {
+            //TileGrids[0].GPU_Use();
+
             foreach (var tileGrid in TileGrids)
             {
                 tileGrid.GPU_Use();

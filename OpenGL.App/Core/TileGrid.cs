@@ -30,7 +30,7 @@ namespace OpenGL.App.Core
 
         public int TileFactoryTextureID { get; private set; }
 
-        public TileGrid(int[,] data, bool isInstanced, int tileFactoryTextureID) : base()
+        public TileGrid(TileData[,] data, bool isInstanced, int tileFactoryTextureID) : base()
         {
             Width = data.GetLength(0);
             Height = data.GetLength(1);
@@ -125,7 +125,7 @@ namespace OpenGL.App.Core
 
             var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileID);
 
-            Tiles[index] = new Resources.Shaders.TileInstancedTileID(textureTileID);
+            //Tiles[index] = new Resources.Shaders.TileInstancedTileID(textureTileID);
         }
 
         /// <summary>
@@ -148,7 +148,7 @@ namespace OpenGL.App.Core
             return vertices;
         }
 
-        private Resources.Shaders.TileInstancedTileID[] TileIDs(int[,] tileData)
+        private Resources.Shaders.TileInstancedTileID[] TileIDs(TileData[,] tileData)
         {
             var vertices = new Resources.Shaders.TileInstancedTileID[Width * Height];
 
@@ -157,40 +157,46 @@ namespace OpenGL.App.Core
             {
                 for (int h = 0; h < Height; h++)
                 {
-                    var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileData[w, h]);
-                    vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID);
+                    var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileData[w, h].TileID);
+                    vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID, tileData[w, h].IsVisible);
                 }
             }
 
             return vertices;
         }
 
+        public class TileData
+        {
+            public int TileID { get; set; }
+            public bool IsVisible { get; set; }
+        }
+
         private Resources.Shaders.TileInstancedTileID[] TileIDs()
         {
             var vertices = new Resources.Shaders.TileInstancedTileID[Width * Height];
 
-            int index = 0;
-            float offset = 1f;
-            for (int w = 0; w < Width; w++)
-            {
-                for (int h = 0; h < Height; h++)
-                {
-                    Vector2 translation = new Vector2();
-                    translation.X = (float)w + offset;
-                    translation.Y = (float)h + offset;
+            //int index = 0;
+            //float offset = 1f;
+            //for (int w = 0; w < Width; w++)
+            //{
+            //    for (int h = 0; h < Height; h++)
+            //    {
+            //        Vector2 translation = new Vector2();
+            //        translation.X = (float)w + offset;
+            //        translation.Y = (float)h + offset;
 
-                    if (index % 2 == 0)
-                    {
-                        var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(1);
-                        vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID);
-                    }
-                    else
-                    {
-                        var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(0);
-                        vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID);
-                    }
-                }
-            }
+            //        if (index % 2 == 0)
+            //        {
+            //            var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(1);
+            //            vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID);
+            //        }
+            //        else
+            //        {
+            //            var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(0);
+            //            vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID);
+            //        }
+            //    }
+            //}
 
             return vertices;
         }

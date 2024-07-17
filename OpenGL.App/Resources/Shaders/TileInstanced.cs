@@ -28,17 +28,20 @@ namespace OpenGL.App.Resources.Shaders
     public readonly struct TileInstancedTileID
     {
         public readonly float TextureID;
+        public readonly float IsVisible;
 
         public static readonly VertexInfo VertexInfo =
         new VertexInfo
         (
             typeof(TileInstancedTileID),
-            new VertexAttribute("aTextureID", 1, sizeof(float), 1)
+            new VertexAttribute("aTextureID", 1, sizeof(float), 1),
+            new VertexAttribute("aIsVisible", 1, sizeof(float), 1)
         );
 
-        public TileInstancedTileID(float textureID)
+        public TileInstancedTileID(float textureID, bool isVisible)
         {
             TextureID = textureID;
+            IsVisible = isVisible == true ? 1 : 0;
         }
     }
 }
