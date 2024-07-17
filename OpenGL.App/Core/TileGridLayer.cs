@@ -31,7 +31,10 @@ namespace OpenGL.App.Core
             if (Game._Game.IsBindlessSupported)
             {
                 TileGrids = new TileGrid[1];
-                //TileGrids[0] = new TileGrid(gridData, true, 0);
+
+                var convertedGridData = ConvertGridDataToTileData(gridData, null);
+
+                TileGrids[0] = new TileGrid(convertedGridData, true, 0);
             }
             else
             {
@@ -41,44 +44,43 @@ namespace OpenGL.App.Core
                 int i = 0;
                 foreach (var textureID in texturesNeeded)
                 {
-                    int[,] newGridData = new int[gridData.GetLength(0),gridData.GetLength(1)];
+                    var convertedGridData = ConvertGridDataToTileData(gridData, textureID);
 
-                    CopyMultiDimensionalArray(gridData, newGridData);
-
-                    var tileData = new TileGrid.TileData[gridData.GetLength(0), gridData.GetLength(1)];
-
-
-                    int index = 0;
-                    for (int w = 0; w < gridData.GetLength(0); w++)
-                    {
-                        for (int h = 0; h < gridData.GetLength(1); h++)
-                        {
-                            tileData[w, h] = new TileGrid.TileData();
-
-                            var textureTileID = Game._Game.TileTextureFactory.TileTextures[gridData[w, h]].TextureIndex;
-                            if (textureTileID != textureID)
-                            {
-                                tileData[w, h].IsVisible = false;
-                                tileData[w, h].TileID = 0;
-                            }
-                            else
-                            {
-                                tileData[w, h].IsVisible = true;
-                                tileData[w, h].TileID = gridData[w, h];
-                            }
-                            
-                        }
-                    }
-
-                    TileGrids[i] = new TileGrid(tileData, true, textureID);
-                    //TileGrids[i].Position.X = i*3;
-                    //TileGrids[i].Position.Y = i*3;
+                    TileGrids[i] = new TileGrid(convertedGridData, true, textureID);
                     TileGrids[i].Position.Z = i * .5f;
                     i++;
                 }
             }
 
             TileDataGrid = gridData;
+        }
+
+        private TileGrid.TileData[,] ConvertGridDataToTileData(int[,] gridData, int? textureID)
+        {
+            var tileData = new TileGrid.TileData[gridData.GetLength(0), gridData.GetLength(1)];
+
+            int index = 0;
+            for (int w = 0; w < gridData.GetLength(0); w++)
+            {
+                for (int h = 0; h < gridData.GetLength(1); h++)
+                {
+                    tileData[w, h] = new TileGrid.TileData();
+
+                    var textureTileID = Game._Game.TileTextureFactory.TileTextures[gridData[w, h]].TextureIndex;
+                    if (textureID != null && textureTileID != textureID)
+                    {
+                        tileData[w, h].IsVisible = false;
+                        tileData[w, h].TileID = 0;
+                    }
+                    else
+                    {
+                        tileData[w, h].IsVisible = true;
+                        tileData[w, h].TileID = gridData[w, h];
+                    }
+                }
+            }
+
+            return tileData;
         }
 
         public void GPU_Use()

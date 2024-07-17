@@ -60,62 +60,6 @@ namespace OpenGL.App.Core
             IndexBuffer.SetData(Indices, Indices.Length);
         }
 
-        public TileGrid(int w, int h, bool isInstanced, int tileFactoryTextureID) : base()
-        {
-            Width = w;
-            Height = h;
-            IsInstanced = isInstanced;
-            TileFactoryTextureID = tileFactoryTextureID;
-
-            base.ShaderFactoryID = "TileInstanced.glsl";
-
-            var vertices = ModelVertices();
-
-            var vertexBuffer = new VertexBuffer(Resources.Shaders.VertexPositionTexture.VertexInfo, vertices.Length, "PositionAndTexture", true);
-            vertexBuffer.SetData(vertices, vertices.Length);
-
-            var offsets = OffsetPosition();
-            var offsetVertexBuffer = new VertexBuffer(Resources.Shaders.TileInstanced.VertexInfo, Width * Height, "Offsets");
-            offsetVertexBuffer.SetData(offsets);
-
-            Tiles = TileIDs();
-            TileVertexBuffer = new VertexBuffer(Resources.Shaders.TileInstancedTileID.VertexInfo, Width * Height, "TileIDs");
-            TileVertexBuffer.SetData(Tiles);
-
-            VertexArray = new VertexArray(new VertexBuffer[] { vertexBuffer, offsetVertexBuffer, TileVertexBuffer }, GetShaderProgram().ShaderProgramHandle);
-
-            IndexBuffer = new IndexBuffer(Indices.Length, true);
-            IndexBuffer.SetData(Indices, Indices.Length);
-
-            //SetTileID(1);
-
-            if (IsInstanced == false)
-            {
-                TileGameObjects = new TileGameObject[w, h];
-
-                for (int i = 0; i < w; i++)
-                {
-                    for (int j = 0; j < h; j++)
-                    {
-                        TileGameObjects[i, j] = new TileGameObject(i, j);
-
-                        if (i % 2 == 0 && j % 2 == 0)
-                        {
-                            TileGameObjects[i, j].SetTileID(1);
-                        }
-                        else if (i % 2 == 0)
-                        {
-                            TileGameObjects[i, j].SetTileID(2);
-                        }
-                        else
-                        {
-                            TileGameObjects[i, j].SetTileID(0);
-                        }
-                    }
-                }
-            }
-        }
-
         /// <summary>
         /// Updates a tile. Make sure to call SendTiles() when done
         /// </summary>
