@@ -51,12 +51,18 @@ namespace OpenGL.App.Core
 
         public void GPU_Use()
         {
+            
+            int startIndex = 0;
             for (int i = CurrentLayer; i >= 0; i--) //Does this layer have a transparent tile?
             {
-                tileGridLayers[i].GPU_Use();
-
+                startIndex = i;
                 if (tileGridLayers[i].HasATransparentTile() == false)
                     break;
+            }
+
+            for (int i = startIndex; i <= CurrentLayer; i++) //Does this layer have a transparent tile?
+            {
+                tileGridLayers[i].GPU_Use();
             }
         }
     }

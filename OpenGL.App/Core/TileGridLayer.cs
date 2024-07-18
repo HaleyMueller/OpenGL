@@ -106,7 +106,8 @@ namespace OpenGL.App.Core
             int i = 1;
             foreach (var tileGrid in TileGrids)
             {
-                tileGrid.Position.Z = Layer * .15f * i;
+                var temp = Layer + 1;
+                tileGrid.Position.Z = temp * .15f * i;
 
                 tileGrid.GPU_Use();
 
