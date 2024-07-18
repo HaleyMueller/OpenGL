@@ -51,23 +51,31 @@ namespace OpenGL.App.Core
         {
             var ret = new int[CurrentLayer+1,3,3];
 
+            List<int> layerIsAllAir = new List<int>();
+
             int endIndex = 1;
             bool isVisible = false;
             for (int i = CurrentLayer; i >= 0; i--) //Does this layer have a transparent tile?
             {
                 endIndex = i;
 
+                int airCount = 0;
                 for (int w = 0; w < 3; w++)
                 {
                     for (int h = 0; h < 3; h++)
                     {
+                        if (tileGridLayers[endIndex].TileDataGrid[w, h] == 0)
+                        {
+                            airCount++;
+                        }
+
                         if (i == CurrentLayer)
                         {
                             ret[endIndex, w, h] = tileGridLayers[endIndex].TileDataGrid[w, h];
                         }
                         else //Check previous layer's tile and see if it is transparent
                         {
-                            if (tileGridLayers[endIndex+1].TileDataGrid[w, h] == 8 || tileGridLayers[endIndex + 1].TileDataGrid[w, h] == 0)
+                            if (ret[endIndex+1,w, h] == 8 || ret[endIndex + 1,w, h] == 0)
                             {
                                 ret[endIndex, w, h] = tileGridLayers[endIndex].TileDataGrid[w, h];
                             }
@@ -87,47 +95,55 @@ namespace OpenGL.App.Core
                     }
                 }
 
+                if (airCount >= 3 * 3)
+                {
+                    layerIsAllAir.Add(i);
+                }
+
                 if (isVisible == false)
                     break;
-
-
             }
 
             //Remove layers by endIndex
             // Determine the size of the new array
-            int newRowCount = ret.GetLength(0) - endIndex;
+            int newRowCount = ret.GetLength(0) - endIndex - layerIsAllAir.Count;
             int[,,] newArray = new int[newRowCount, 3,3];
 
             // Copy the elements
+            int airOffset = 0;
             for (int i = 0; i < newRowCount; i++)
             {
+                if (layerIsAllAir.Contains(i))
+                {
+                    airOffset++;
+                }
                 for (int j = 0; j < 3; j++)
                 {
                     for (int k = 0; k < 3; k++)
                     {
-                        newArray[i, j, k] = ret[endIndex + i, j, k];
+                        newArray[i, j, k] = ret[endIndex + i + airOffset, j, k];
                     }
                 }
             }
 
             int index = 0;
 
-            //Console.WriteLine($"Visible layers: {newArray.GetLength(0)}");
+            Console.WriteLine($"Visible layers: {newArray.GetLength(0)}");
 
-            //Console.WriteLine($"Layers Visible:");
-            //for (int i = 0; i < newArray.GetLength(0); i++)
-            //{
-            //    for (int w = 0; w < 3; w++)
-            //    {
-            //        for (int h = 0; h < 3; h++)
-            //        {
-            //            Console.Write($"{newArray[i, w, h]}, ");
-            //        }
-            //        Console.Write($"{Environment.NewLine}");
-            //    }
-            //    Console.Write($"{Environment.NewLine}");
-            //    index++;
-            //}
+            Console.WriteLine($"Layers Visible:");
+            for (int i = 0; i < newArray.GetLength(0); i++)
+            {
+                for (int w = 0; w < 3; w++)
+                {
+                    for (int h = 0; h < 3; h++)
+                    {
+                        Console.Write($"{newArray[i, w, h]}, ");
+                    }
+                    Console.Write($"{Environment.NewLine}");
+                }
+                Console.Write($"{Environment.NewLine}");
+                index++;
+            }
 
             return newArray;
         }
