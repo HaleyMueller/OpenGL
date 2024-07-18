@@ -106,7 +106,7 @@ namespace OpenGL.App
             MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
 
             #if DEBUG
-            //IsBindlessSupported = false;
+            IsBindlessSupported = false;
             MaxArrayTextureLayers = 3;
             #endif
 

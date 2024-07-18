@@ -177,7 +177,6 @@ namespace OpenGL.App.Core
                             TileGridLayers[layer].UpdateTileData(i, x, tiles[layer,i,x]);
                         }
                     }
-                    
                     TileGridLayers[layer].SendTiles();
                     TileGridLayers[layer].GPU_Use();
                 }

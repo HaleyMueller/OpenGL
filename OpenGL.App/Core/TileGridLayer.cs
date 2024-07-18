@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static OpenGL.App.Core.TileFactory.TileTextureFactory;
 using static OpenGL.App.FFMPEG;
 
 namespace OpenGL.App.Core
@@ -15,7 +16,7 @@ namespace OpenGL.App.Core
         public int Layer { get; private set; }
         public int[,] TileDataGrid { get; private set; }
 
-        public TileGrid[] TileGrids { get; private set; }
+        public List<TileGrid> TileGrids { get; private set; } = new List<TileGrid>();
 
         public TileGridLayer(int layer, int[,] tileDataGrid)
         {
@@ -30,23 +31,23 @@ namespace OpenGL.App.Core
             //If normal way then make sure the tile ids are in the same TileGrid. If not then you will have to make another TileGrid
             if (Game._Game.IsBindlessSupported)
             {
-                TileGrids = new TileGrid[1];
+                TileGrids = new List<TileGrid>();
 
                 var convertedGridData = ConvertGridDataToTileData(gridData, null);
 
-                TileGrids[0] = new TileGrid(convertedGridData, true, 0);
+                TileGrids.Add( new TileGrid(convertedGridData, true, 0));
             }
             else
             {
                 var texturesNeeded = Game._Game.TileTextureFactory.GetTextureIndicesForTileIDs(gridData);
 
-                TileGrids = new TileGrid[texturesNeeded.Count];
+                TileGrids = new List<TileGrid>();
                 int i = 0;
                 foreach (var textureID in texturesNeeded)
                 {
                     var convertedGridData = ConvertGridDataToTileData(gridData, textureID);
 
-                    TileGrids[i] = new TileGrid(convertedGridData, true, textureID);
+                    TileGrids.Add(new TileGrid(convertedGridData, true, textureID));
                     TileGrids[i].Position.Z = i * .15f;
                     i++;
                 }
@@ -101,17 +102,27 @@ namespace OpenGL.App.Core
 
         public void GPU_Use()
         {
+            var gridData = TileDataGrid;
             //TileGrids[0].GPU_Use();
-
+            var texturesNeeded = Game._Game.TileTextureFactory.GetTextureIndicesForTileIDs(gridData);
             int i = 1;
-            foreach (var tileGrid in TileGrids)
+            foreach (var textureToUse in texturesNeeded)
             {
-                var temp = Layer + 1;
-                tileGrid.Position.Z = temp * .15f * i;
+                var tileGrid = TileGrids.FirstOrDefault(x => x.TileFactoryTextureID == textureToUse);
 
-                tileGrid.GPU_Use();
+                if (tileGrid != null)
+                {
+                    var temp = Layer + 1;
+                    tileGrid.Position.Z = temp * .15f * i;
 
-                i++;
+                    tileGrid.GPU_Use();
+
+                    i++;
+                }
+                else
+                {
+                    Console.WriteLine("This shouldn't get hit rn");
+                }
             }
         }
 
@@ -138,6 +149,15 @@ namespace OpenGL.App.Core
                 tileGridOld.UpdateTile(x, y, false);
 
                 var tileGridNew = TileGrids.FirstOrDefault(x => x.TileFactoryTextureID == newTextureIndex);
+
+                if (tileGridNew == null)
+                {
+                    var texture = Game._Game.TileTextureFactory.TileTextures[ID];
+                    tileGridNew = new TileGrid(3,3, true, texture.TextureIndex);
+                    
+                    TileGrids.Add(tileGridNew);
+                    //tileGridNew.Position.Z = TileGrids.IndexOf(tileGridNew) + 1 * .15f;
+                }
                 tileGridNew.UpdateTile(x, y, ID);
             }
             else

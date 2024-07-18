@@ -62,6 +62,39 @@ namespace OpenGL.App.Core
             IndexBuffer.SetData(Indices, Indices.Length);
         }
 
+        public TileGrid(int w, int h, bool isInstanced, int tileFactoryTextureID) : base()
+        {
+            Width = w;
+            Height = h;
+            
+            Tiles = new Resources.Shaders.TileInstancedTileID[w*h];
+            for (int i = 0; i < w*h; i++)
+            {
+                Tiles[i] = new Resources.Shaders.TileInstancedTileID();
+            }
+
+            IsInstanced = isInstanced;
+            TileFactoryTextureID = tileFactoryTextureID;
+
+            base.ShaderFactoryID = "TileInstanced.glsl";
+
+            var vertices = ModelVertices();
+
+            var vertexBuffer = new VertexBuffer(Resources.Shaders.VertexPositionTexture.VertexInfo, vertices.Length, "PositionAndTexture", true);
+            vertexBuffer.SetData(vertices, vertices.Length);
+
+            var offsets = OffsetPosition();
+            var offsetVertexBuffer = new VertexBuffer(Resources.Shaders.TileInstanced.VertexInfo, Width * Height, "Offsets");
+            offsetVertexBuffer.SetData(offsets);
+
+            TileVertexBuffer = new VertexBuffer(Resources.Shaders.TileInstancedTileID.VertexInfo, Width * Height, "TileIDs");
+
+            VertexArray = new VertexArray(new VertexBuffer[] { vertexBuffer, offsetVertexBuffer, TileVertexBuffer }, GetShaderProgram().ShaderProgramHandle);
+
+            IndexBuffer = new IndexBuffer(Indices.Length, true);
+            IndexBuffer.SetData(Indices, Indices.Length);
+        }
+
         /// <summary>
         /// Updates a tile. Make sure to call SendTiles() when done
         /// </summary>
