@@ -154,6 +154,10 @@ namespace OpenGL.App.Core
 
             public int GetTextureTileIndexByTileID(int tileID)
             {
+                if (tileID == -1)
+                {
+                    return -1;
+                }
                 var tileTexture = TileTextures[tileID]; //Grab tileID
                 return tileTexture.TextureIndex;
             }

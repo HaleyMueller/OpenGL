@@ -52,24 +52,24 @@ namespace OpenGL.App.Core
                 }
             }
 
-            TileDataGrid = gridData;
+            //TileDataGrid = gridData;
         }
 
-        internal bool HasATransparentTile()
-        {
-            for (int w = 0; w < TileDataGrid.GetLength(0); w++)
-            {
-                for (int h = 0; h < TileDataGrid.GetLength(1); h++)
-                {
-                    if (TileDataGrid[w, h] == 8)
-                    {
-                        return true;
-                    }
-                }
-            }
+        //internal bool HasATransparentTile()
+        //{
+        //    for (int w = 0; w < TileDataGrid.GetLength(0); w++)
+        //    {
+        //        for (int h = 0; h < TileDataGrid.GetLength(1); h++)
+        //        {
+        //            if (TileDataGrid[w, h] == 8)
+        //            {
+        //                return true;
+        //            }
+        //        }
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
         private TileGrid.TileData[,] ConvertGridDataToTileData(int[,] gridData, int? textureID)
         {
@@ -115,6 +115,14 @@ namespace OpenGL.App.Core
             }
         }
 
+        public void SendTiles()
+        {
+            foreach (var grid in TileGrids)
+            {
+                grid.SendTiles();
+            }
+        }
+
         public void UpdateTileData(int x, int y, int ID)
         {
             //If bindless then use first and only TileGrid
@@ -126,7 +134,11 @@ namespace OpenGL.App.Core
 
             if (oldTextureIndex != newTextureIndex)
             {
+                var tileGridOld = TileGrids.FirstOrDefault(x => x.TileFactoryTextureID == oldTextureIndex);
+                //tileGridOld.UpdateTile(x, y, -1);
 
+                var tileGridNew = TileGrids.FirstOrDefault(x => x.TileFactoryTextureID == newTextureIndex);
+                tileGridNew.UpdateTile(x, y, ID);
             }
             else
             {

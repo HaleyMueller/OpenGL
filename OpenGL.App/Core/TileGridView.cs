@@ -13,6 +13,7 @@ namespace OpenGL.App.Core
     public class TileGridView
     {
         public TileGrid[] TileGrids = new TileGrid[5];
+        public TileGridLayer[] TileGridLayers = new TileGridLayer[5];
 
         public int[,,] ChunkData { get; set; }
 
@@ -81,7 +82,7 @@ namespace OpenGL.App.Core
                             }
                             else
                             {
-                                ret[endIndex, w, h] = -1;
+                                ret[endIndex, w, h] = 0;
                             }
                         }
 
@@ -156,26 +157,39 @@ namespace OpenGL.App.Core
             {
                 var convertedGridData = ConvertGridDataToTileData(tiles, layer, null);
 
-                if (TileGrids[layer] == null)
+                if (TileGridLayers[layer] == null)
                 {
-                    TileGrids[layer] = new TileGrid(convertedGridData, true, 0);
+                    TileGridLayers[layer] = new TileGridLayer(layer, Convert3DimArrayTo2(layer, tiles));
                     var temp = layer + 1;
-                    TileGrids[layer].Position.Z = temp * .15f;
 
-                    if (IsTileGridAllAir(tiles, layer) == false)
+                    foreach (var grid in TileGridLayers[layer].TileGrids)
                     {
-                        TileGrids[layer].GPU_Use();
+                        grid.Position.Z = temp * .15f;
                     }
+                    TileGridLayers[layer].GPU_Use();
+
+                    //if (IsTileGridAllAir(tiles, layer) == false)
+                    //{
+                    //    TileGridLayers[layer].GPU_Use();
+                    //}
                 }
                 else
                 {
-                    TileGrids[layer].UpdateTile(convertedGridData);
-                    TileGrids[layer].SendTiles();
-
-                    if (IsTileGridAllAir(tiles, layer) == false)
+                    for (int i = 0; i < tiles.GetLength(1); i++)
                     {
-                        TileGrids[layer].GPU_Use();
+                        for (int x = 0; x < tiles.GetLength(2); x++)
+                        {
+                            TileGridLayers[layer].UpdateTileData(i, x, tiles[layer,i,x]);
+                        }
                     }
+                    
+                    TileGridLayers[layer].SendTiles();
+                    TileGridLayers[layer].GPU_Use();
+
+                    //if (IsTileGridAllAir(tiles, layer) == false)
+                    //{
+                    //    TileGridLayers[layer].GPU_Use();
+                    //}
                 }
             }
 
@@ -197,6 +211,21 @@ namespace OpenGL.App.Core
             //{
             //    tileGridLayers[i].GPU_Use();
             //}
+        }
+
+        private int[,] Convert3DimArrayTo2(int index, int[,,] data)
+        {
+            var ret = new int[data.GetLength(1), data.GetLength(2)];
+
+            for (var i = 0; i < ret.GetLength(0); i++)
+            {
+                for (var x = 0; x < ret.GetLength(1); x++)
+                {
+                    ret[i,x] = data[index, i,x];
+                }
+            }
+
+            return ret;
         }
 
         private bool IsTileGridAllAir(int[,,] gridData, int layer)

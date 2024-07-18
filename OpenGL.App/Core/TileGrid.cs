@@ -71,7 +71,7 @@ namespace OpenGL.App.Core
 
             var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileID);
 
-            //Tiles[index] = new Resources.Shaders.TileInstancedTileID(textureTileID);
+            Tiles[index] = new Resources.Shaders.TileInstancedTileID(textureTileID, tileID == -1 ? false : true);
         }
 
         public void UpdateTile(TileData[,] tileDatas)
