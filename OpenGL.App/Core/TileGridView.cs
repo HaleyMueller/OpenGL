@@ -12,16 +12,16 @@ namespace OpenGL.App.Core
     /// </summary>
     public class TileGridView
     {
-        public TileGridLayer[] tileGridLayers;
-
         public TileGrid[] TileGrids = new TileGrid[5];
 
+        public int[,,] ChunkData { get; set; }
 
         public int CurrentLayer { get; private set; }
 
-        public TileGridView(int currentLayer)
+        public TileGridView(int currentLayer, int[,,] data)
         {
             CurrentLayer = currentLayer;
+            ChunkData = data;
         }
 
         public void DecreaseLayer()
@@ -38,9 +38,9 @@ namespace OpenGL.App.Core
         {
             CurrentLayer += 1;
 
-            if (CurrentLayer >= tileGridLayers.Length)
+            if (CurrentLayer >= ChunkData.GetLength(0))
             {
-                CurrentLayer = tileGridLayers.Length -1;
+                CurrentLayer = ChunkData.GetLength(0) - 1;
             }
         }
 
@@ -64,20 +64,20 @@ namespace OpenGL.App.Core
                 {
                     for (int h = 0; h < 3; h++)
                     {
-                        if (tileGridLayers[endIndex].TileDataGrid[w, h] == 0)
+                        if (ChunkData[i, w, h] == 0)
                         {
                             airCount++;
                         }
 
                         if (i == CurrentLayer)
                         {
-                            ret[endIndex, w, h] = tileGridLayers[endIndex].TileDataGrid[w, h];
+                            ret[endIndex, w, h] = ChunkData[i, w, h];
                         }
                         else //Check previous layer's tile and see if it is transparent
                         {
                             if (ret[endIndex+1,w, h] == 8 || ret[endIndex + 1,w, h] == 0)
                             {
-                                ret[endIndex, w, h] = tileGridLayers[endIndex].TileDataGrid[w, h];
+                                ret[endIndex, w, h] = ChunkData[i, w, h];
                             }
                             else
                             {
@@ -85,7 +85,7 @@ namespace OpenGL.App.Core
                             }
                         }
 
-                        if (tileGridLayers[endIndex].TileDataGrid[w, h] == 8 || tileGridLayers[endIndex].TileDataGrid[w, h] == 0)
+                        if (ChunkData[i, w, h] == 8 || ChunkData[i, w, h] == 0)
                         {
                             if (endIndex != 0)
                             {

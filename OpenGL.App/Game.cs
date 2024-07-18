@@ -148,6 +148,7 @@ namespace OpenGL.App
             }
             else
             {
+                int[,,] tileData = new int[5,3,3];
 
                 int[,] tileGridLayerData =
                 {
@@ -156,46 +157,45 @@ namespace OpenGL.App
                     { 1, 1, 1 }
                 };
 
-                TileGridLayer = new TileGridLayer(3, tileGridLayerData);
+                UpdateTileChunkData(tileGridLayerData, 4, ref tileData);
 
-                int[,] tileGridLayerDataMid =
+                tileGridLayerData = new int[,]
 {
                     { 1, 2, 3 },
                     { 3, 8, 1 },
                     { 1, 1, 1 }
                 };
 
-                var TileGridLayerMid = new TileGridLayer(2, tileGridLayerDataMid);
+                UpdateTileChunkData(tileGridLayerData, 3, ref tileData);
 
-                int[,] tileGridLayerDataAir =
+                tileGridLayerData = new int[,]
 {
                     { 0, 0, 0 },
                     { 0, 0, 0 },
                     { 0, 0, 0 }
                 };
 
-                var TileGridLayerAir = new TileGridLayer(1, tileGridLayerDataAir);
+                UpdateTileChunkData(tileGridLayerData, 2, ref tileData);
 
-                int[,] tileGridLayerDataBase =
+                tileGridLayerData = new int[,]
                 {
                     { 7, 7, 7 },
                     { 7, 8, 7 },
                     { 7, 7, 7 }
                 };
 
-                var TileGridLayerBase = new TileGridLayer(1, tileGridLayerDataBase);
+                UpdateTileChunkData(tileGridLayerData, 1, ref tileData);
 
-                int[,] tileGridLayerDataBaseBase =
+                tileGridLayerData = new int[,]
 {
                     { 9, 9, 9 },
                     { 9, 9, 9 },
                     { 9, 9, 9 }
                 };
 
-                var TileGridLayerBaseBase = new TileGridLayer(0, tileGridLayerDataBaseBase);
+                UpdateTileChunkData(tileGridLayerData, 0, ref tileData);
 
-                TileGridView = new TileGridView(2);
-                TileGridView.tileGridLayers = new TileGridLayer[] { TileGridLayerBaseBase, TileGridLayerBase, TileGridLayerAir, TileGridLayerMid, TileGridLayer };
+                TileGridView = new TileGridView(2, tileData);
             }
 
             Tile = new TileGameObject(0, 0);
@@ -204,6 +204,17 @@ namespace OpenGL.App
             GL.Enable(EnableCap.DepthTest);
 
             base.OnLoad();
+        }
+
+        private void UpdateTileChunkData(int[,] data, int layer, ref int[,,] chunk)
+        {
+            for (int i = 0; i < data.GetLength(0); i++)
+            {
+                for (int j = 0; j < data.GetLength(1); j++)
+                {
+                    chunk[layer, i, j] = data[i, j];
+                }
+            }
         }
 
         private bool IsBindlessTextureSupported()
