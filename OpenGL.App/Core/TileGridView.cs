@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,6 +13,9 @@ namespace OpenGL.App.Core
     public class TileGridView
     {
         public TileGridLayer[] tileGridLayers;
+
+        public TileGrid[] TileGrids = new TileGrid[5];
+
 
         public int CurrentLayer { get; private set; }
 
@@ -63,7 +67,7 @@ namespace OpenGL.App.Core
                         }
                         else //Check previous layer's tile and see if it is transparent
                         {
-                            if (tileGridLayers[endIndex+1].TileDataGrid[w, h] == 8)
+                            if (tileGridLayers[endIndex+1].TileDataGrid[w, h] == 8 || tileGridLayers[endIndex + 1].TileDataGrid[w, h] == 0)
                             {
                                 ret[endIndex, w, h] = tileGridLayers[endIndex].TileDataGrid[w, h];
                             }
@@ -73,7 +77,7 @@ namespace OpenGL.App.Core
                             }
                         }
 
-                        if (tileGridLayers[endIndex].TileDataGrid[w, h] == 8)
+                        if (tileGridLayers[endIndex].TileDataGrid[w, h] == 8 || tileGridLayers[endIndex].TileDataGrid[w, h] == 0)
                         {
                             if (endIndex != 0)
                             {
@@ -86,8 +90,7 @@ namespace OpenGL.App.Core
                 if (isVisible == false)
                     break;
 
-                if (tileGridLayers[i].HasATransparentTile() == false)
-                    break;
+
             }
 
             //Remove layers by endIndex
@@ -131,19 +134,110 @@ namespace OpenGL.App.Core
 
         public void GPU_Use()
         {
-            VisibleTiles();
-            int startIndex = 0;
-            for (int i = CurrentLayer; i >= 0; i--) //Does this layer have a transparent tile?
+            var tiles = VisibleTiles();
+
+            for (int layer = 0; layer < tiles.GetLength(0); layer++)
             {
-                startIndex = i;
-                if (tileGridLayers[i].HasATransparentTile() == false)
-                    break;
+                var convertedGridData = ConvertGridDataToTileData(tiles, layer, null);
+
+                if (TileGrids[layer] == null)
+                {
+                    TileGrids[layer] = new TileGrid(convertedGridData, true, 0);
+                    var temp = layer + 1;
+                    TileGrids[layer].Position.Z = temp * .15f;
+
+                    if (IsTileGridAllAir(tiles, layer) == false)
+                    {
+                        TileGrids[layer].GPU_Use();
+                    }
+                }
+                else
+                {
+                    TileGrids[layer].UpdateTile(convertedGridData);
+                    TileGrids[layer].SendTiles();
+
+                    if (IsTileGridAllAir(tiles, layer) == false)
+                    {
+                        TileGrids[layer].GPU_Use();
+                    }
+                }
             }
 
-            for (int i = startIndex; i <= CurrentLayer; i++) //Does this layer have a transparent tile?
+            //foreach (var tilegrid in TileGrids)
+            //{
+            //    if (tilegrid != null)
+            //        tilegrid.GPU_Use();
+            //}
+
+            //int startIndex = 0;
+            //for (int i = CurrentLayer; i >= 0; i--) //Does this layer have a transparent tile?
+            //{
+            //    startIndex = i;
+            //    if (tileGridLayers[i].HasATransparentTile() == false)
+            //        break;
+            //}
+
+            //for (int i = startIndex; i <= CurrentLayer; i++) //Does this layer have a transparent tile?
+            //{
+            //    tileGridLayers[i].GPU_Use();
+            //}
+        }
+
+        private bool IsTileGridAllAir(int[,,] gridData, int layer)
+        {
+            var ret = false;
+
+            var airCount = 0;
+            for (int i = 0; i < gridData.GetLength(1); i++)
             {
-                tileGridLayers[i].GPU_Use();
+                for (int x = 0; x < gridData.GetLength(2); x++)
+                {
+                    if (gridData[layer,i,x] != 0)
+                    {
+                        i = gridData.GetLength(1);
+                        x = gridData.GetLength(2);
+                        airCount++;
+                    }
+                }
             }
+
+            if (airCount >= gridData.GetLength(1) * gridData.GetLength(2))
+                return true;
+
+            return ret;
+        }
+
+        private TileGrid.TileData[,] ConvertGridDataToTileData(int[,,] gridData, int layerID, int? textureID)
+        {
+            var tileData = new TileGrid.TileData[gridData.GetLength(1), gridData.GetLength(2)];
+
+            int index = 0;
+            for (int w = 0; w < gridData.GetLength(1); w++)
+            {
+                for (int h = 0; h < gridData.GetLength(2); h++)
+                {
+                    tileData[w, h] = new TileGrid.TileData();
+
+                    var tileID = gridData[layerID, w, h];
+
+                    if (tileID < 0)
+                        tileID = 0;
+
+                    var textureTileID = Game._Game.TileTextureFactory.TileTextures[tileID].TextureIndex;
+                    if (textureID != null && textureTileID != textureID)
+                    {
+                        tileData[w, h].IsVisible = false;
+                        //tileData[w, h].TileID = 0;
+                    }
+                    else
+                    {
+                        tileData[w, h].IsVisible = true;
+                        tileData[w, h].TileID = tileID;
+                    }
+                }
+            }
+
+            return tileData;
         }
     }
 }

@@ -11,6 +11,7 @@ using static OpenGL.App.Core.Texture.Texture;
 using static OpenGL.App.Core.TileFactory;
 using OpenGL.App.Core.Texture;
 using System.Diagnostics;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OpenGL.App.Core
 {
@@ -71,6 +72,11 @@ namespace OpenGL.App.Core
             var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileID);
 
             //Tiles[index] = new Resources.Shaders.TileInstancedTileID(textureTileID);
+        }
+
+        public void UpdateTile(TileData[,] tileDatas)
+        {
+            Tiles = TileIDs(tileDatas);
         }
 
         /// <summary>

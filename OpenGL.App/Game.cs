@@ -106,7 +106,7 @@ namespace OpenGL.App
             MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
 
             #if DEBUG
-            IsBindlessSupported = false;
+            //IsBindlessSupported = false;
             MaxArrayTextureLayers = 3;
             #endif
 
@@ -167,6 +167,15 @@ namespace OpenGL.App
 
                 var TileGridLayerMid = new TileGridLayer(2, tileGridLayerDataMid);
 
+                int[,] tileGridLayerDataAir =
+{
+                    { 0, 0, 0 },
+                    { 0, 0, 0 },
+                    { 0, 0, 0 }
+                };
+
+                var TileGridLayerAir = new TileGridLayer(1, tileGridLayerDataAir);
+
                 int[,] tileGridLayerDataBase =
                 {
                     { 7, 7, 7 },
@@ -186,7 +195,7 @@ namespace OpenGL.App
                 var TileGridLayerBaseBase = new TileGridLayer(0, tileGridLayerDataBaseBase);
 
                 TileGridView = new TileGridView(2);
-                TileGridView.tileGridLayers = new TileGridLayer[] { TileGridLayerBaseBase, TileGridLayerBase, TileGridLayerMid, TileGridLayer };
+                TileGridView.tileGridLayers = new TileGridLayer[] { TileGridLayerBaseBase, TileGridLayerBase, TileGridLayerAir, TileGridLayerMid, TileGridLayer };
             }
 
             Tile = new TileGameObject(0, 0);
