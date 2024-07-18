@@ -135,7 +135,7 @@ namespace OpenGL.App.Core
             if (oldTextureIndex != newTextureIndex)
             {
                 var tileGridOld = TileGrids.FirstOrDefault(x => x.TileFactoryTextureID == oldTextureIndex);
-                //tileGridOld.UpdateTile(x, y, -1);
+                tileGridOld.UpdateTile(x, y, false);
 
                 var tileGridNew = TileGrids.FirstOrDefault(x => x.TileFactoryTextureID == newTextureIndex);
                 tileGridNew.UpdateTile(x, y, ID);

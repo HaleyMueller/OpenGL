@@ -167,11 +167,6 @@ namespace OpenGL.App.Core
                         grid.Position.Z = temp * .15f;
                     }
                     TileGridLayers[layer].GPU_Use();
-
-                    //if (IsTileGridAllAir(tiles, layer) == false)
-                    //{
-                    //    TileGridLayers[layer].GPU_Use();
-                    //}
                 }
                 else
                 {
@@ -185,32 +180,8 @@ namespace OpenGL.App.Core
                     
                     TileGridLayers[layer].SendTiles();
                     TileGridLayers[layer].GPU_Use();
-
-                    //if (IsTileGridAllAir(tiles, layer) == false)
-                    //{
-                    //    TileGridLayers[layer].GPU_Use();
-                    //}
                 }
             }
-
-            //foreach (var tilegrid in TileGrids)
-            //{
-            //    if (tilegrid != null)
-            //        tilegrid.GPU_Use();
-            //}
-
-            //int startIndex = 0;
-            //for (int i = CurrentLayer; i >= 0; i--) //Does this layer have a transparent tile?
-            //{
-            //    startIndex = i;
-            //    if (tileGridLayers[i].HasATransparentTile() == false)
-            //        break;
-            //}
-
-            //for (int i = startIndex; i <= CurrentLayer; i++) //Does this layer have a transparent tile?
-            //{
-            //    tileGridLayers[i].GPU_Use();
-            //}
         }
 
         private int[,] Convert3DimArrayTo2(int index, int[,,] data)

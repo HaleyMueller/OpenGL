@@ -74,6 +74,13 @@ namespace OpenGL.App.Core
             Tiles[index] = new Resources.Shaders.TileInstancedTileID(textureTileID, tileID == -1 ? false : true);
         }
 
+        public void UpdateTile(int w, int h, bool isVisible)
+        {
+            int index = w * Height + h;
+
+            Tiles[index] = new Resources.Shaders.TileInstancedTileID(Tiles[index].TextureID, isVisible);
+        }
+
         public void UpdateTile(TileData[,] tileDatas)
         {
             Tiles = TileIDs(tileDatas);
