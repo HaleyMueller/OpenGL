@@ -15,7 +15,7 @@ namespace OpenGL.App.Core
         public Tile[] Tiles { get; set; }
         public TileFactory() 
         {
-            Tiles = new Tile[9]; //TODO make this create from json by name and then map it to int id
+            Tiles = new Tile[10]; //TODO make this create from json by name and then map it to int id
             Tiles[0] = new Tile() { Name = "air"};
             Tiles[1] = new Tile() { Name = "dirt"};
             Tiles[2] = new Tile() { Name = "sand"};
@@ -25,6 +25,7 @@ namespace OpenGL.App.Core
             Tiles[6] = new Tile() { Name = "coal_block" };
             Tiles[7] = new Tile() { Name = "deepslate" };
             Tiles[8] = new Tile() { Name = "glass" };
+            Tiles[9] = new Tile() { Name = "bedrock" };
 
             int i = 0;
             Console.WriteLine("Registering tiles");

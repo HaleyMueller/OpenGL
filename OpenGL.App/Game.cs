@@ -107,7 +107,7 @@ namespace OpenGL.App
 
             #if DEBUG
             IsBindlessSupported = false;
-            MaxArrayTextureLayers = 2;
+            MaxArrayTextureLayers = 3;
             #endif
 
             this.IsVisible = true;
@@ -156,7 +156,7 @@ namespace OpenGL.App
                     { 1, 1, 1 }
                 };
 
-                TileGridLayer = new TileGridLayer(2, tileGridLayerData);
+                TileGridLayer = new TileGridLayer(3, tileGridLayerData);
 
                 int[,] tileGridLayerDataMid =
 {
@@ -165,19 +165,28 @@ namespace OpenGL.App
                     { 1, 1, 1 }
                 };
 
-                var TileGridLayerMid = new TileGridLayer(1, tileGridLayerDataMid);
+                var TileGridLayerMid = new TileGridLayer(2, tileGridLayerDataMid);
 
                 int[,] tileGridLayerDataBase =
-{
+                {
                     { 7, 7, 7 },
-                    { 7, 7, 7 },
+                    { 7, 8, 7 },
                     { 7, 7, 7 }
                 };
 
-                var TileGridLayerBase = new TileGridLayer(0, tileGridLayerDataBase);
+                var TileGridLayerBase = new TileGridLayer(1, tileGridLayerDataBase);
+
+                int[,] tileGridLayerDataBaseBase =
+{
+                    { 9, 9, 9 },
+                    { 9, 9, 9 },
+                    { 9, 9, 9 }
+                };
+
+                var TileGridLayerBaseBase = new TileGridLayer(0, tileGridLayerDataBaseBase);
 
                 TileGridView = new TileGridView(2);
-                TileGridView.tileGridLayers = new TileGridLayer[] { TileGridLayerBase, TileGridLayerMid, TileGridLayer };
+                TileGridView.tileGridLayers = new TileGridLayer[] { TileGridLayerBaseBase, TileGridLayerBase, TileGridLayerMid, TileGridLayer };
             }
 
             Tile = new TileGameObject(0, 0);
@@ -326,6 +335,7 @@ namespace OpenGL.App
             GL.UseProgram(ShaderFactory.ShaderPrograms["TextShader.glsl"].ShaderProgramHandle);
             _font.RenderText($"FPS: {framesDuringLimit}", new Vector2(.5f, 12f), .25f, new Color4(1f, .8f, 1f, 1f));
             _font.RenderText($"IsBindlessSupported: {IsBindlessSupported}", new Vector2(.5f, 25f), .25f, new Color4(1f, .8f, 1f, 1f));
+            _font.RenderText($"Layer: {TileGridView.CurrentLayer}", new Vector2(.5f, 37f), .25f, new Color4(1f, .8f, 1f, 1f));
 
             this.Context.SwapBuffers(); //Take back buffer into forground buffer
 
