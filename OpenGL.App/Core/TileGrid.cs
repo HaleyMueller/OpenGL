@@ -10,6 +10,7 @@ using OpenTK.Mathematics;
 using static OpenGL.App.Core.Texture.Texture;
 using static OpenGL.App.Core.TileFactory;
 using OpenGL.App.Core.Texture;
+using System.Diagnostics;
 
 namespace OpenGL.App.Core
 {
@@ -96,19 +97,40 @@ namespace OpenGL.App.Core
         {
             var vertices = new Resources.Shaders.TileInstancedTileID[Width * Height];
 
+            var newTileData = RotateMatrix90Degrees(tileData);
+
             int index = 0;
             for (int w = 0; w < Width; w++)
             {
                 for (int h = 0; h < Height; h++)
                 {
-                    var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileData[w, h].TileID);
-                    vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID, tileData[w, h].IsVisible);
+                    var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(newTileData[w, h].TileID);
+                    vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID, newTileData[w, h].IsVisible);
                 }
             }
 
             return vertices;
         }
 
+        static TileData[,] RotateMatrix90Degrees(TileData[,] matrix)
+        {
+            int rowCount = matrix.GetLength(0);
+            int colCount = matrix.GetLength(1);
+
+            TileData[,] result = new TileData[colCount, rowCount];
+
+            for (int row = 0; row < rowCount; row++)
+            {
+                for (int col = 0; col < colCount; col++)
+                {
+                    result[col, rowCount - 1 - row] = matrix[row, col];
+                }
+            }
+
+            return result;
+        }
+
+        [DebuggerDisplay("TileID = {TileID} IsVisible = {IsVisible}")]
         public class TileData
         {
             public int TileID { get; set; }
@@ -198,7 +220,7 @@ namespace OpenGL.App.Core
             }
             else
             {
-                Game._Game.TileTextureFactory.GPU_Use(TileFactoryTextureID, GetShaderProgram(), TextureData, true);
+                Game._Game.TileTextureFactory.GPU_UseByTextureID(TileFactoryTextureID, GetShaderProgram(), TextureData);
                 base.GPU_Use_Shader();
             }
         }

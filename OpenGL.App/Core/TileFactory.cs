@@ -15,7 +15,7 @@ namespace OpenGL.App.Core
         public Tile[] Tiles { get; set; }
         public TileFactory() 
         {
-            Tiles = new Tile[7]; //TODO make this create from json by name and then map it to int id
+            Tiles = new Tile[9]; //TODO make this create from json by name and then map it to int id
             Tiles[0] = new Tile() { Name = "air"};
             Tiles[1] = new Tile() { Name = "dirt"};
             Tiles[2] = new Tile() { Name = "sand"};
@@ -23,7 +23,16 @@ namespace OpenGL.App.Core
             Tiles[4] = new Tile() { Name = "spruce_leaves"};
             Tiles[5] = new Tile() { Name = "quartz_block_top" };
             Tiles[6] = new Tile() { Name = "coal_block" };
-            //Tiles[7] = new Tile() { Name = "deepslate" };
+            Tiles[7] = new Tile() { Name = "deepslate" };
+            Tiles[8] = new Tile() { Name = "glass" };
+
+            int i = 0;
+            Console.WriteLine("Registering tiles");
+            foreach (var tile in Tiles)
+            {
+                Console.WriteLine($"[{i}] {tile.Name}");
+                i++;
+            }
         }
 
         public const int TileResolution = 16;
@@ -80,6 +89,8 @@ namespace OpenGL.App.Core
 
                     var textureArraysNeeded = Math.Round((decimal)TileFactory.Tiles.Length / Game._Game.MaxArrayTextureLayers, MidpointRounding.ToPositiveInfinity); //How many texture arrays do we need?
 
+                    Console.WriteLine($"Texture Arrays needed: {textureArraysNeeded}");
+
                     int fileOffset = 0;
                     for (int i = 0; i < textureArraysNeeded; i++)
                     {
@@ -91,7 +102,7 @@ namespace OpenGL.App.Core
                         foreach (var fileName in textureArray.TextureFiles)
                         {
                             var tileTexture = new TileTexture();
-                            tileTexture.TextureIndex = i; //Should only ever have 1 bindless texture since it is infinite
+                            tileTexture.TextureIndex = i;
                             tileTexture.TextureDepth = textureDepth;
 
                             FileInfo fileInfo = new FileInfo(fileName);
@@ -102,6 +113,8 @@ namespace OpenGL.App.Core
                                 Console.WriteLine($"Couldn't find tile object with name of: {fileNameWithoutExtenstion}");
                             else
                                 TileTextures[tileID] = tileTexture;
+
+                            Console.WriteLine($"{fileName} is in texture array {i} at depth {textureDepth}");
 
                             textureDepth++;
                         }
@@ -142,6 +155,14 @@ namespace OpenGL.App.Core
             {
                 var tileTexture = TileTextures[tileID]; //Grab tileID
                 return tileTexture.TextureIndex;
+            }
+
+            public void GPU_UseByTextureID(int TileFactoryTextureID, ShaderProgram shaderProgram, Texture.Texture.TextureData textureData)
+            {
+                //Find what texture to use and what tileid
+                var texture = Textures[TileFactoryTextureID];
+
+                texture.GPU_Use(textureData);
             }
 
             public void GPU_Use(int tileID, ShaderProgram shaderProgram, Texture.Texture.TextureData textureData, bool isInstanced = false)

@@ -20,11 +20,44 @@ namespace OpenGL.App.Core
             CurrentLayer = currentLayer;
         }
 
+        public void DecreaseLayer()
+        {
+            CurrentLayer -= 1;
+
+            if (CurrentLayer < 0)
+            {
+                CurrentLayer = 0;
+            }
+        }
+
+        public void IncreaseLayer()
+        {
+            CurrentLayer += 1;
+
+            if (CurrentLayer >= tileGridLayers.Length)
+            {
+                CurrentLayer = tileGridLayers.Length -1;
+            }
+        }
+
+        //Maybe create a new tilegrid only with visible objects instead of each layer having a tilegrid?
         public int[,,] VisibleTiles()
         {
             var ret = new int[3,3,3];
 
+
             return ret;
+        }
+
+        public void GPU_Use()
+        {
+            for (int i = CurrentLayer; i >= 0; i--) //Does this layer have a transparent tile?
+            {
+                tileGridLayers[i].GPU_Use();
+
+                if (tileGridLayers[i].HasATransparentTile() == false)
+                    break;
+            }
         }
     }
 }

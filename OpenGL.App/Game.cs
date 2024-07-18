@@ -98,6 +98,7 @@ namespace OpenGL.App
         public bool PlayVideo = false;
 
         public TileGridLayer TileGridLayer;
+        public TileGridView TileGridView;
 
         protected override async void OnLoad()
         {
@@ -105,7 +106,7 @@ namespace OpenGL.App
             MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
 
             #if DEBUG
-            IsBindlessSupported = false;
+            //IsBindlessSupported = false;
             MaxArrayTextureLayers = 2;
             #endif
 
@@ -150,12 +151,33 @@ namespace OpenGL.App
 
                 int[,] tileGridLayerData =
                 {
+                    { 1, 1, 1 },
+                    { 1, 1, 1 },
+                    { 1, 1, 1 }
+                };
+
+                TileGridLayer = new TileGridLayer(2, tileGridLayerData);
+
+                int[,] tileGridLayerDataMid =
+{
                     { 1, 2, 3 },
                     { 3, 2, 1 },
                     { 1, 1, 1 }
                 };
 
-                TileGridLayer = new TileGridLayer(0, tileGridLayerData);
+                var TileGridLayerMid = new TileGridLayer(1, tileGridLayerDataMid);
+
+                int[,] tileGridLayerDataBase =
+{
+                    { 7, 7, 7 },
+                    { 7, 7, 7 },
+                    { 7, 7, 7 }
+                };
+
+                var TileGridLayerBase = new TileGridLayer(0, tileGridLayerDataBase);
+
+                TileGridView = new TileGridView(2);
+                TileGridView.tileGridLayers = new TileGridLayer[] { TileGridLayerBase, TileGridLayerMid, TileGridLayer };
             }
 
             Tile = new TileGameObject(0, 0);
@@ -237,6 +259,11 @@ namespace OpenGL.App
                 }
             }
 
+            if (_Game.IsKeyPressed(Keys.Comma))
+                TileGridView.DecreaseLayer();
+            if (_Game.IsKeyPressed(Keys.Period))
+                TileGridView.IncreaseLayer();
+
             #region Camera
             float cameraSpeed = (float)(1f * args.Time);
 
@@ -290,7 +317,7 @@ namespace OpenGL.App
             UniformBufferObjectFactory.UniformBufferObjects[UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix].GPU_Use();
 
             //Draw Objects
-            TileGridLayer.GPU_Use();
+            TileGridView.GPU_Use();
             //TileGrid.GPU_Use();
             Tile.GPU_Use();
 

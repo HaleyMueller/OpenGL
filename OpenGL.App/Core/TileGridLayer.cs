@@ -47,12 +47,28 @@ namespace OpenGL.App.Core
                     var convertedGridData = ConvertGridDataToTileData(gridData, textureID);
 
                     TileGrids[i] = new TileGrid(convertedGridData, true, textureID);
-                    TileGrids[i].Position.Z = i * .5f;
+                    TileGrids[i].Position.Z = i * .15f;
                     i++;
                 }
             }
 
             TileDataGrid = gridData;
+        }
+
+        internal bool HasATransparentTile()
+        {
+            for (int w = 0; w < TileDataGrid.GetLength(0); w++)
+            {
+                for (int h = 0; h < TileDataGrid.GetLength(1); h++)
+                {
+                    if (TileDataGrid[w, h] == 8)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private TileGrid.TileData[,] ConvertGridDataToTileData(int[,] gridData, int? textureID)
@@ -70,7 +86,7 @@ namespace OpenGL.App.Core
                     if (textureID != null && textureTileID != textureID)
                     {
                         tileData[w, h].IsVisible = false;
-                        tileData[w, h].TileID = 0;
+                        //tileData[w, h].TileID = 0;
                     }
                     else
                     {
@@ -87,9 +103,14 @@ namespace OpenGL.App.Core
         {
             //TileGrids[0].GPU_Use();
 
+            int i = 1;
             foreach (var tileGrid in TileGrids)
             {
+                tileGrid.Position.Z = Layer * .15f * i;
+
                 tileGrid.GPU_Use();
+
+                i++;
             }
         }
 

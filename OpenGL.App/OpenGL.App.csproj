@@ -121,6 +121,9 @@
     <None Update="Resources\Textures\dirt.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\Textures\glass.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\Textures\quartz_block_top.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
