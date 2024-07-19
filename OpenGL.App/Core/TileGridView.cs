@@ -186,9 +186,13 @@ namespace OpenGL.App.Core
                 var gridLayer = TileGridLayers[i];
                 if (gridLayer.LastUsed.AddSeconds(1) < DateTime.Now)
                 {
-                    Console.WriteLine($"Removing tile grid {i} from memory");
+                    Console.WriteLine($"Removing tile grid layer {i} from memory");
                     gridLayer.Dispose();
                     TileGridLayers.RemoveAt(i);
+                }
+                else
+                {
+                    gridLayer.LastUsedCheck();
                 }
             }
         }

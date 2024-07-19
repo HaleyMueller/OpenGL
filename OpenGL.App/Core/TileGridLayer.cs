@@ -103,6 +103,20 @@ namespace OpenGL.App.Core
             return tileData;
         }
 
+        public void LastUsedCheck()
+        {
+            for (int i = 0; i < TileGrids.Count; i++)
+            {
+                var gridLayer = TileGrids[i];
+                if (gridLayer.LastUsed.AddSeconds(1) < DateTime.Now)
+                {
+                    Console.WriteLine($"Removing tile grid {i} from memory");
+                    gridLayer.Dispose();
+                    TileGrids.RemoveAt(i);
+                }
+            }
+        }
+
         public void GPU_Use()
         {
             this.LastUsed = DateTime.Now;

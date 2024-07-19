@@ -17,6 +17,7 @@ namespace OpenGL.App.Core
 {
     public class TileGrid : GameObject
     {
+        public DateTime LastUsed { get; set; }
         public TileGameObject[,] TileGameObjects;
         public int Width { get; private set; }
         public int Height { get; private set; }
@@ -239,6 +240,7 @@ namespace OpenGL.App.Core
 
         public override void GPU_Use()
         {
+            LastUsed = DateTime.Now;
             if (IsInstanced)
             {
                 GPU_Use_Shader();
