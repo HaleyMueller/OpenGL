@@ -120,7 +120,7 @@ namespace OpenGL.App
             TileFactory = new TileFactory();
             TileTextureFactory = new TileFactory.TileTextureFactory(TileFactory);
 
-            MainCamera = new Camera(new Vector3(0, 0, 3f), null);
+            MainCamera = new Camera(new Vector3(0, 0, 10f), null);
 
             _font = new FreeTypeFont();
 
@@ -148,49 +148,49 @@ namespace OpenGL.App
             }
             else
             {
-                int[,,] tileData = new int[5,3,3];
+                int[,,] tileData = new int[5,3,4];
 
                 int[,] tileGridLayerData =
                 {
-                    { 1, 1, 1 },
-                    { 1, 1, 1 },
-                    { 1, 1, 1 }
+                    { 1, 1, 1, 1 },
+                    { 1, 1, 1, 1 },
+                    { 1, 1, 1, 1 }
                 };
 
                 UpdateTileChunkData(tileGridLayerData, 4, ref tileData);
 
                 tileGridLayerData = new int[,]
 {
-                    { 1, 2, 3 },
-                    { 3, 8, 1 },
-                    { 1, 1, 1 }
+                    { 1, 2, 3, 2 },
+                    { 3, 8, 1, 2 },
+                    { 1, 1, 1, 2 }
                 };
 
                 UpdateTileChunkData(tileGridLayerData, 3, ref tileData);
 
                 tileGridLayerData = new int[,]
 {
-                    { 0, 0, 0 },
-                    { 0, 0, 0 },
-                    { 0, 0, 0 }
+                    { 0, 0, 0, 0 },
+                    { 0, 0, 0, 0 },
+                    { 0, 0, 0, 0 }
                 };
 
                 UpdateTileChunkData(tileGridLayerData, 2, ref tileData);
 
                 tileGridLayerData = new int[,]
                 {
-                    { 7, 7, 7 },
-                    { 7, 8, 7 },
-                    { 7, 7, 7 }
+                    { 7, 7, 7, 4 },
+                    { 7, 8, 7, 4 },
+                    { 7, 7, 7, 4 }
                 };
 
                 UpdateTileChunkData(tileGridLayerData, 1, ref tileData);
 
                 tileGridLayerData = new int[,]
 {
-                    { 9, 9, 9 },
-                    { 9, 9, 9 },
-                    { 9, 9, 9 }
+                    { 9, 9, 9, 5 },
+                    { 9, 9, 9, 5 },
+                    { 9, 9, 9, 5 }
                 };
 
                 UpdateTileChunkData(tileGridLayerData, 0, ref tileData);
@@ -346,7 +346,7 @@ namespace OpenGL.App
             UniformBufferObjectFactory.UniformBufferObjects[UniformBufferObjectFactory.UBOIndex.ProjectionViewMatrix].GPU_Use();
 
             //Draw Objects
-            TileGridView.GPU_Use();
+            var displayData = TileGridView.GPU_Use();
             //TileGrid.GPU_Use();
             Tile.GPU_Use();
 
@@ -356,6 +356,20 @@ namespace OpenGL.App
             _font.RenderText($"FPS: {framesDuringLimit}", new Vector2(.5f, 12f), .25f, new Color4(1f, .8f, 1f, 1f));
             _font.RenderText($"IsBindlessSupported: {IsBindlessSupported}", new Vector2(.5f, 25f), .25f, new Color4(1f, .8f, 1f, 1f));
             _font.RenderText($"Layer: {TileGridView.CurrentLayer}", new Vector2(.5f, 37f), .25f, new Color4(1f, .8f, 1f, 1f));
+
+            float height = 37f;
+            foreach (var layer in displayData)
+            {
+                height += 13f;
+                _font.RenderText($"Layer ID: {layer.LayerID}", new Vector2(.5f, height), .25f, new Color4(1f, .8f, 1f, 1f));
+                foreach (var tileGrid in layer.TileGridLayers)
+                {
+                    height += 13f;
+                    _font.RenderText($"Texture ID: {tileGrid.TileFactoryTextureID}", new Vector2(20f, height), .25f, new Color4(1f, .8f, 1f, 1f));
+                    height += 13f;
+                    _font.RenderText($"X Pos: {tileGrid.Position}", new Vector2(20f, height), .25f, new Color4(1f, .8f, 1f, 1f));
+                }
+            }
 
             this.Context.SwapBuffers(); //Take back buffer into forground buffer
 

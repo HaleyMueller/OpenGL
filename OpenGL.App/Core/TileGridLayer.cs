@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using static OpenGL.App.Core.TileFactory.TileTextureFactory;
@@ -21,10 +22,17 @@ namespace OpenGL.App.Core
 
         public DateTime LastUsed { get; set; }
 
+        public int Width { get; private set; }
+        public int Height { get; private set; }
+
         public TileGridLayer(int layer, int[,] tileDataGrid)
         {
             Layer = layer;
             TileDataGrid = tileDataGrid;
+
+            Width = tileDataGrid.GetLength(0);
+            Height = tileDataGrid.GetLength(1);
+
             SetTileGrids(tileDataGrid);
         }
 
@@ -117,23 +125,33 @@ namespace OpenGL.App.Core
             }
         }
 
-        public void GPU_Use()
+        public class Dumb
         {
+            public int TileFactoryTextureID { get; set; }
+            public float Position { get; set; }
+        }
+
+        public List<Dumb> GPU_Use()
+        {
+            var ret = new List<Dumb>();
+
             this.LastUsed = DateTime.Now;
             var gridData = TileDataGrid;
             //TileGrids[0].GPU_Use();
             var texturesNeeded = Game._Game.TileTextureFactory.GetTextureIndicesForTileIDs(gridData);
-            int i = 1;
+            float i = .01f;
             foreach (var textureToUse in texturesNeeded)
             {
                 var tileGrid = TileGrids.FirstOrDefault(x => x.TileFactoryTextureID == textureToUse);
 
                 if (tileGrid != null)
                 {
-                    var temp = Layer + 1;
-                    tileGrid.Position.Z = temp * .15f * i;
+                    var temp = (Layer * 2);
+                    tileGrid.Position.Z = temp + i;
 
                     tileGrid.GPU_Use();
+
+                    ret.Add(new Dumb() { TileFactoryTextureID = textureToUse, Position = tileGrid.Position.Z });
 
                     i++;
                 }
@@ -142,6 +160,8 @@ namespace OpenGL.App.Core
                     Console.WriteLine("This shouldn't get hit rn");
                 }
             }
+
+            return ret;
         }
 
         public void SendTiles()
@@ -171,7 +191,7 @@ namespace OpenGL.App.Core
                 if (tileGridNew == null)
                 {
                     var texture = Game._Game.TileTextureFactory.TileTextures[ID];
-                    tileGridNew = new TileGrid(3,3, true, texture.TextureIndex);
+                    tileGridNew = new TileGrid(Width,Height, true, texture.TextureIndex);
                     
                     TileGrids.Add(tileGridNew);
                     //tileGridNew.Position.Z = TileGrids.IndexOf(tileGridNew) + 1 * .15f;

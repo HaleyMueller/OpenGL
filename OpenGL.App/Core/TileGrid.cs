@@ -144,7 +144,8 @@ namespace OpenGL.App.Core
         {
             var vertices = new Resources.Shaders.TileInstancedTileID[Width * Height];
 
-            var newTileData = RotateMatrix90Degrees(tileData);
+            var newTileData = tileData;
+            //var newTileData = RotateMatrix90Degrees(tileData);
 
             int index = 0;
             for (int w = 0; w < Width; w++)

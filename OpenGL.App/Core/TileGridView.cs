@@ -18,10 +18,16 @@ namespace OpenGL.App.Core
 
         public int CurrentLayer { get; private set; }
 
+        public int Width { get; private set; }
+        public int Height { get; private set; }
+
         public TileGridView(int currentLayer, int[,,] data)
         {
             CurrentLayer = currentLayer;
             ChunkData = data;
+
+            Width = data.GetLength(1);
+            Height = data.GetLength(2);
         }
 
         public void DecreaseLayer()
@@ -49,9 +55,11 @@ namespace OpenGL.App.Core
         /// </summary>
         public int[,,] VisibleTiles()
         {
-            var ret = new int[CurrentLayer+1,3,3];
+            var ret = new int[CurrentLayer+1,Width,Height];
 
             List<int> layerIsAllAir = new List<int>();
+
+            bool[,] transparentBlocks = new bool[Width,Height];
 
             int endIndex = 1;
             bool isVisible = false;
@@ -60,9 +68,9 @@ namespace OpenGL.App.Core
                 endIndex = i;
 
                 int airCount = 0;
-                for (int w = 0; w < 3; w++)
+                for (int w = 0; w < Width; w++)
                 {
-                    for (int h = 0; h < 3; h++)
+                    for (int h = 0; h < Height; h++)
                     {
                         if (ChunkData[i, w, h] == 0)
                         {
@@ -72,12 +80,30 @@ namespace OpenGL.App.Core
                         if (i == CurrentLayer)
                         {
                             ret[endIndex, w, h] = ChunkData[i, w, h];
+
+                            if (ret[endIndex , w, h] == 8 || ret[endIndex, w, h] == 0)
+                            {
+                                transparentBlocks[w, h] = true;
+                            }
+                            else
+                            {
+                                transparentBlocks[w, h] = false;
+                            }
                         }
                         else //Check previous layer's tile and see if it is transparent
                         {
-                            if (ret[endIndex+1,w, h] == 8 || ret[endIndex + 1,w, h] == 0)
+                            if (transparentBlocks[w, h])
                             {
                                 ret[endIndex, w, h] = ChunkData[i, w, h];
+
+                                if (ret[endIndex, w, h] == 8 || ret[endIndex, w, h] == 0)
+                                {
+                                    transparentBlocks[w, h] = true;
+                                }
+                                else
+                                {
+                                    transparentBlocks[w, h] = false;
+                                }
                             }
                             else
                             {
@@ -95,7 +121,7 @@ namespace OpenGL.App.Core
                     }
                 }
 
-                if (airCount >= 3 * 3)
+                if (airCount >= Width * Height)
                 {
                     layerIsAllAir.Add(i);
                 }
@@ -107,7 +133,7 @@ namespace OpenGL.App.Core
             //Remove layers by endIndex
             // Determine the size of the new array
             int newRowCount = ret.GetLength(0) - endIndex - layerIsAllAir.Count;
-            int[,,] newArray = new int[newRowCount, 3,3];
+            int[,,] newArray = new int[newRowCount, Width,Height];
 
             // Copy the elements
             int airOffset = 0;
@@ -117,9 +143,9 @@ namespace OpenGL.App.Core
                 {
                     airOffset++;
                 }
-                for (int j = 0; j < 3; j++)
+                for (int j = 0; j < Width; j++)
                 {
-                    for (int k = 0; k < 3; k++)
+                    for (int k = 0; k < Height; k++)
                     {
                         newArray[i, j, k] = ret[endIndex + i + airOffset, j, k];
                     }
@@ -148,7 +174,7 @@ namespace OpenGL.App.Core
             return newArray;
         }
 
-        public void AddOrUpdateTileGridLayer(int layer, int[,,] data)
+        public List<TileGridLayer.Dumb> AddOrUpdateTileGridLayer(int layer, int[,,] data)
         {
             var tileData = Convert3DimArrayTo2(layer, data);
 
@@ -157,12 +183,12 @@ namespace OpenGL.App.Core
             {
                 tileGridLayer = new TileGridLayer(layer, tileData);
                 TileGridLayers.Add(tileGridLayer);
-                TileGridLayers[layer].GPU_Use();
+                return TileGridLayers[layer].GPU_Use();
             }
             else if (TileGridLayers[layer] == null)
             {
                 TileGridLayers[layer] = new TileGridLayer(layer, tileData);
-                TileGridLayers[layer].GPU_Use();
+                return TileGridLayers[layer].GPU_Use();
             }
             else
             {
@@ -174,7 +200,7 @@ namespace OpenGL.App.Core
                     }
                 }
                 TileGridLayers[layer].SendTiles();
-                TileGridLayers[layer].GPU_Use();
+                return TileGridLayers[layer].GPU_Use();
             }
             
         }
@@ -197,15 +223,24 @@ namespace OpenGL.App.Core
             }
         }
 
-        public void GPU_Use()
+        public class Hate
         {
+            public int LayerID { get; set; }
+            public List<TileGridLayer.Dumb> TileGridLayers { get; set; } = new List<TileGridLayer.Dumb>();
+        }
+
+        public List<Hate> GPU_Use()
+        {
+            var ret = new List<Hate>();
             var tiles = VisibleTiles();
             LastUsed();
 
             for (int layer = 0; layer < tiles.GetLength(0); layer++)
             {
-                AddOrUpdateTileGridLayer(layer, tiles);
+                ret.Add(new Hate() { LayerID = layer, TileGridLayers = AddOrUpdateTileGridLayer(layer, tiles) });
             }
+
+            return ret;
         }
 
         private int[,] Convert3DimArrayTo2(int index, int[,,] data)
