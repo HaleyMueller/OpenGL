@@ -126,24 +126,24 @@ namespace OpenGL.App.Core
                 }
             }
 
-            int index = 0;
+            //int index = 0;
 
-            Console.WriteLine($"Visible layers: {newArray.GetLength(0)}");
+            //Console.WriteLine($"Visible layers: {newArray.GetLength(0)}");
 
-            Console.WriteLine($"Layers Visible:");
-            for (int i = 0; i < newArray.GetLength(0); i++)
-            {
-                for (int w = 0; w < 3; w++)
-                {
-                    for (int h = 0; h < 3; h++)
-                    {
-                        Console.Write($"{newArray[i, w, h]}, ");
-                    }
-                    Console.Write($"{Environment.NewLine}");
-                }
-                Console.Write($"{Environment.NewLine}");
-                index++;
-            }
+            //Console.WriteLine($"Layers Visible:");
+            //for (int i = 0; i < newArray.GetLength(0); i++)
+            //{
+            //    for (int w = 0; w < 3; w++)
+            //    {
+            //        for (int h = 0; h < 3; h++)
+            //        {
+            //            Console.Write($"{newArray[i, w, h]}, ");
+            //        }
+            //        Console.Write($"{Environment.NewLine}");
+            //    }
+            //    Console.Write($"{Environment.NewLine}");
+            //    index++;
+            //}
 
             return newArray;
         }
@@ -179,9 +179,24 @@ namespace OpenGL.App.Core
             
         }
 
+        public void LastUsed()
+        {
+            for (int i = 0; i <  TileGridLayers.Count; i++)
+            {
+                var gridLayer = TileGridLayers[i];
+                if (gridLayer.LastUsed.AddSeconds(1) < DateTime.Now)
+                {
+                    Console.WriteLine($"Removing tile grid {i} from memory");
+                    gridLayer.Dispose();
+                    TileGridLayers.RemoveAt(i);
+                }
+            }
+        }
+
         public void GPU_Use()
         {
             var tiles = VisibleTiles();
+            LastUsed();
 
             for (int layer = 0; layer < tiles.GetLength(0); layer++)
             {

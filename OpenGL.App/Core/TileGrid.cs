@@ -293,6 +293,8 @@ namespace OpenGL.App.Core
                     }
                 }
             }
+
+            base.Dispose();
         }
     }
 }

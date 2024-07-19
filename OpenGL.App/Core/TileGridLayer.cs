@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenGL.App.GameObjects;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +18,8 @@ namespace OpenGL.App.Core
         public int[,] TileDataGrid { get; private set; }
 
         public List<TileGrid> TileGrids { get; private set; } = new List<TileGrid>();
+
+        public DateTime LastUsed { get; set; }
 
         public TileGridLayer(int layer, int[,] tileDataGrid)
         {
@@ -102,6 +105,7 @@ namespace OpenGL.App.Core
 
         public void GPU_Use()
         {
+            this.LastUsed = DateTime.Now;
             var gridData = TileDataGrid;
             //TileGrids[0].GPU_Use();
             var texturesNeeded = Game._Game.TileTextureFactory.GetTextureIndicesForTileIDs(gridData);
@@ -198,6 +202,17 @@ namespace OpenGL.App.Core
                 {
                     indices[dimension] = i;
                     CopyRecursive(sourceArray, destinationArray, indices, lengths, dimension + 1);
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            if (TileGrids != null)
+            {
+                for (int i = 0; i < TileGrids.Count; i++)
+                {
+                    TileGrids[i].Dispose();
                 }
             }
         }
