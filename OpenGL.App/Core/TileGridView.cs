@@ -33,6 +33,7 @@ namespace OpenGL.App.Core
 
         public void DecreaseLayer()
         {
+            _VisibleTiles = null;
             CurrentLayer -= 1;
 
             if (CurrentLayer < 0)
@@ -43,6 +44,7 @@ namespace OpenGL.App.Core
 
         public void IncreaseLayer()
         {
+            _VisibleTiles = null;
             CurrentLayer += 1;
 
             if (CurrentLayer >= ChunkData.GetLength(0))
@@ -51,11 +53,16 @@ namespace OpenGL.App.Core
             }
         }
 
+        public ShaderTileData[,,] _VisibleTiles {  get; set; }
+
         /// <summary>
         /// Returns a 3d array that first index is layer number. index 0 = bottom layer
         /// </summary>
         public ShaderTileData[,,] VisibleTiles()
         {
+            if (_VisibleTiles != null)
+                return _VisibleTiles;
+
             //var ret = new int[CurrentLayer+1,Width,Height];
             var ret = new ShaderTileData[CurrentLayer+1,Width,Height];
 
@@ -195,6 +202,8 @@ namespace OpenGL.App.Core
             //    Console.Write($"{Environment.NewLine}");
             //    index++;
             //}
+
+            _VisibleTiles = newArray;
 
             return newArray;
         }

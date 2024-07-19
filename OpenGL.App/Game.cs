@@ -26,6 +26,8 @@ using static OpenGL.App.FFMPEG;
 using OpenGL.App.Core.SSBO;
 using static OpenGL.App.Core.SSBO.SSBOFactory;
 using static OpenGL.App.Core.Texture.BindlessTexture;
+using Icaria.Engine.Procedural;
+using static OpenCvSharp.ML.DTrees;
 
 namespace OpenGL.App
 {
@@ -96,6 +98,7 @@ namespace OpenGL.App
         public Video VideoFromFile;
 
         public bool PlayVideo = false;
+        public bool WorldGen = true;
 
         public TileGridLayer TileGridLayer;
         public TileGridView TileGridView;
@@ -106,7 +109,7 @@ namespace OpenGL.App
             MaxArrayTextureLayers = GL.GetInteger(GetPName.MaxArrayTextureLayers);
 
             #if DEBUG
-            IsBindlessSupported = false;
+            //IsBindlessSupported = false;
             MaxArrayTextureLayers = 3;
             #endif
 
@@ -145,6 +148,53 @@ namespace OpenGL.App
 
                 //MainCamera = new Camera(new Vector3(80, 65, 3), null, zoom: 17);
                 MainCamera = new Camera(new Vector3(x, y, 3), null, zoom: 5);
+            }
+            else if (WorldGen)
+            {
+                int width = 100;
+                int height = 100;
+                int depth = 100;
+
+                int seed = 6942069;
+                float[,,] heightMap = GenerateHeightMap(seed, width, height, depth);
+
+                int[,,] tileData = new int[depth, width, height];
+
+                for (int d = 0; d < heightMap.GetLength(0); d++)
+                {
+                    int[,] tileGridLayerData = new int[heightMap.GetLength(1), heightMap.GetLength(2)];
+
+                    for (int x = 0; x < heightMap.GetLength(1); x++)
+                    {
+                        for (int y = 0; y < heightMap.GetLength(2); y++)
+                        {
+                            var block = heightMap[d, x, y];
+
+                            if (block <= .1f)
+                                tileGridLayerData[x, y] = 1;
+                            else if (block <= .2f)
+                                tileGridLayerData[x, y] = 2;
+                            else if (block <= .3f)
+                                tileGridLayerData[x, y] = 3;
+                            else if (block <= .4f)
+                                tileGridLayerData[x, y] = 4;
+                            else if (block <= .5f)
+                                tileGridLayerData[x, y] = 5;
+                            else if (block <= .6f)
+                                tileGridLayerData[x, y] = 6;
+                            else if (block <= .7f)
+                                tileGridLayerData[x, y] = 7;
+                            else if (block <= .8f)
+                                tileGridLayerData[x, y] = 8;
+                            else
+                                tileGridLayerData[x, y] = 9;
+                        }
+                    }
+
+                    UpdateTileChunkData(tileGridLayerData, d, ref tileData);
+                }
+
+                TileGridView = new TileGridView(2, tileData);
             }
             else
             {
@@ -204,6 +254,25 @@ namespace OpenGL.App
             GL.Enable(EnableCap.DepthTest);
 
             base.OnLoad();
+        }
+
+        float[,,] GenerateHeightMap(int seed, int width, int height, int depth)
+        {
+            float[,,] heightMap = new float[depth, width, height];
+
+            for (int d = 0; d < depth; d++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    for (int y = 0; y < height; y++)
+                    {
+                        //Console.WriteLine($"ret {IcariaNoise.GradientNoise3D(x, y, d, seed)}");
+                        //heightMap[d, x, y] = IcariaNoise.GradientNoise3D(x, y, d, seed);
+                        heightMap[d, x, y] = IcariaNoise.GradientNoiseHQ(x, y, seed);
+                    }
+                }
+            }
+            return heightMap;
         }
 
         private void UpdateTileChunkData(int[,] data, int layer, ref int[,,] chunk)
