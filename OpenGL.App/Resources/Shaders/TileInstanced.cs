@@ -29,19 +29,22 @@ namespace OpenGL.App.Resources.Shaders
     {
         public readonly float TextureID;
         public readonly float IsVisible;
+        public readonly float Depth;
 
         public static readonly VertexInfo VertexInfo =
         new VertexInfo
         (
             typeof(TileInstancedTileID),
             new VertexAttribute("aTextureID", 1, sizeof(float), 1),
-            new VertexAttribute("aIsVisible", 1, sizeof(float), 1)
+            new VertexAttribute("aIsVisible", 1, sizeof(float), 1),
+            new VertexAttribute("aDepth", 1, sizeof(float), 1)
         );
 
-        public TileInstancedTileID(float textureID, bool isVisible)
+        public TileInstancedTileID(float textureID, bool isVisible, float depth)
         {
             TextureID = textureID;
             IsVisible = isVisible == true ? 1 : 0;
+            Depth = depth;
         }
     }
 }

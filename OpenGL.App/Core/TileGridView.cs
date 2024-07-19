@@ -174,6 +174,12 @@ namespace OpenGL.App.Core
             return newArray;
         }
 
+        public class ShaderTileData
+        {
+            public int TileID { get; set; }
+            public float Depth { get; set; }
+        }
+
         public List<TileGridLayer.Dumb> AddOrUpdateTileGridLayer(int layer, int[,,] data)
         {
             var tileData = Convert3DimArrayTo2(layer, data);

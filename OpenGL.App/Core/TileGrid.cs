@@ -105,14 +105,14 @@ namespace OpenGL.App.Core
 
             var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileID);
 
-            Tiles[index] = new Resources.Shaders.TileInstancedTileID(textureTileID, tileID == -1 ? false : true);
+            Tiles[index] = new Resources.Shaders.TileInstancedTileID(textureTileID, tileID == -1 ? false : true, .1f);
         }
 
         public void UpdateTile(int w, int h, bool isVisible)
         {
             int index = w * Height + h;
 
-            Tiles[index] = new Resources.Shaders.TileInstancedTileID(Tiles[index].TextureID, isVisible);
+            Tiles[index] = new Resources.Shaders.TileInstancedTileID(Tiles[index].TextureID, isVisible, .1f);
         }
 
         public void UpdateTile(TileData[,] tileDatas)
@@ -153,7 +153,7 @@ namespace OpenGL.App.Core
                 for (int h = 0; h < Height; h++)
                 {
                     var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(newTileData[w, h].TileID);
-                    vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID, newTileData[w, h].IsVisible);
+                    vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID, newTileData[w, h].IsVisible, .1f);
                 }
             }
 
