@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
@@ -53,9 +54,10 @@ namespace OpenGL.App.Core
         /// <summary>
         /// Returns a 3d array that first index is layer number. index 0 = bottom layer
         /// </summary>
-        public int[,,] VisibleTiles()
+        public ShaderTileData[,,] VisibleTiles()
         {
-            var ret = new int[CurrentLayer+1,Width,Height];
+            //var ret = new int[CurrentLayer+1,Width,Height];
+            var ret = new ShaderTileData[CurrentLayer+1,Width,Height];
 
             List<int> layerIsAllAir = new List<int>();
 
@@ -72,6 +74,9 @@ namespace OpenGL.App.Core
                 {
                     for (int h = 0; h < Height; h++)
                     {
+                        ret[endIndex, w, h] = new ShaderTileData();
+                        ret[endIndex, w, h].Depth = CurrentLayer - i;
+
                         if (ChunkData[i, w, h] == 0)
                         {
                             airCount++;
@@ -79,9 +84,9 @@ namespace OpenGL.App.Core
 
                         if (i == CurrentLayer)
                         {
-                            ret[endIndex, w, h] = ChunkData[i, w, h];
+                            ret[endIndex, w, h].TileID = ChunkData[i, w, h];
 
-                            if (ret[endIndex , w, h] == 8 || ret[endIndex, w, h] == 0)
+                            if (ret[endIndex , w, h].TileID == 8 || ret[endIndex, w, h].TileID == 0)
                             {
                                 transparentBlocks[w, h] = true;
                             }
@@ -89,14 +94,23 @@ namespace OpenGL.App.Core
                             {
                                 transparentBlocks[w, h] = false;
                             }
+
+                            if (ret[endIndex, w, h].TileID == 0)
+                            {
+                                ret[endIndex, w, h].IsVisible = false;
+                            }
+                            else
+                            {
+                                ret[endIndex, w, h].IsVisible = true;
+                            }
                         }
                         else //Check previous layer's tile and see if it is transparent
                         {
-                            if (transparentBlocks[w, h])
+                            if (transparentBlocks[w, h]) //If under a transparent tile
                             {
-                                ret[endIndex, w, h] = ChunkData[i, w, h];
+                                ret[endIndex, w, h].TileID = ChunkData[i, w, h];
 
-                                if (ret[endIndex, w, h] == 8 || ret[endIndex, w, h] == 0)
+                                if (ret[endIndex, w, h].TileID == 8 || ret[endIndex, w, h].TileID == 0)
                                 {
                                     transparentBlocks[w, h] = true;
                                 }
@@ -104,10 +118,19 @@ namespace OpenGL.App.Core
                                 {
                                     transparentBlocks[w, h] = false;
                                 }
+
+                                if (ret[endIndex, w, h].TileID == 0)
+                                {
+                                    ret[endIndex, w, h].IsVisible = false;
+                                }
+                                else
+                                {
+                                    ret[endIndex, w, h].IsVisible = true;
+                                }
                             }
                             else
                             {
-                                ret[endIndex, w, h] = 0;
+                                ret[endIndex, w, h].TileID = 0;
                             }
                         }
 
@@ -133,7 +156,7 @@ namespace OpenGL.App.Core
             //Remove layers by endIndex
             // Determine the size of the new array
             int newRowCount = ret.GetLength(0) - endIndex - layerIsAllAir.Count;
-            int[,,] newArray = new int[newRowCount, Width,Height];
+            ShaderTileData[,,] newArray = new ShaderTileData[newRowCount, Width,Height];
 
             // Copy the elements
             int airOffset = 0;
@@ -147,7 +170,9 @@ namespace OpenGL.App.Core
                 {
                     for (int k = 0; k < Height; k++)
                     {
-                        newArray[i, j, k] = ret[endIndex + i + airOffset, j, k];
+                        newArray[i, j, k] = new ShaderTileData();
+                        newArray[i, j, k].TileID = ret[endIndex + i + airOffset, j, k].TileID;
+                        newArray[i, j, k].Depth = ret[endIndex + i + airOffset, j, k].Depth;
                     }
                 }
             }
@@ -174,13 +199,15 @@ namespace OpenGL.App.Core
             return newArray;
         }
 
+        [DebuggerDisplay("TileID = {TileID} IsVisible = {IsVisible} Depth = {Depth}")]
         public class ShaderTileData
         {
             public int TileID { get; set; }
             public float Depth { get; set; }
+            public bool IsVisible { get; set; }
         }
 
-        public List<TileGridLayer.Dumb> AddOrUpdateTileGridLayer(int layer, int[,,] data)
+        public List<TileGridLayer.Dumb> AddOrUpdateTileGridLayer(int layer, ShaderTileData[,,] data)
         {
             var tileData = Convert3DimArrayTo2(layer, data);
 
@@ -249,15 +276,17 @@ namespace OpenGL.App.Core
             return ret;
         }
 
-        private int[,] Convert3DimArrayTo2(int index, int[,,] data)
+        private ShaderTileData[,] Convert3DimArrayTo2(int index, ShaderTileData[,,] data)
         {
-            var ret = new int[data.GetLength(1), data.GetLength(2)];
+            var ret = new ShaderTileData[data.GetLength(1), data.GetLength(2)];
 
             for (var i = 0; i < ret.GetLength(0); i++)
             {
                 for (var x = 0; x < ret.GetLength(1); x++)
                 {
-                    ret[i,x] = data[index, i,x];
+                    ret[i, x] = new ShaderTileData();
+                    ret[i, x].TileID = data[index, i,x].TileID;
+                    ret[i, x].Depth = data[index, i,x].Depth;
                 }
             }
 
@@ -288,37 +317,37 @@ namespace OpenGL.App.Core
             return ret;
         }
 
-        private TileGrid.TileData[,] ConvertGridDataToTileData(int[,,] gridData, int layerID, int? textureID)
-        {
-            var tileData = new TileGrid.TileData[gridData.GetLength(1), gridData.GetLength(2)];
+        //private TileGrid.TileData[,] ConvertGridDataToTileData(int[,,] gridData, int layerID, int? textureID)
+        //{
+        //    var tileData = new TileGrid.TileData[gridData.GetLength(1), gridData.GetLength(2)];
 
-            int index = 0;
-            for (int w = 0; w < gridData.GetLength(1); w++)
-            {
-                for (int h = 0; h < gridData.GetLength(2); h++)
-                {
-                    tileData[w, h] = new TileGrid.TileData();
+        //    int index = 0;
+        //    for (int w = 0; w < gridData.GetLength(1); w++)
+        //    {
+        //        for (int h = 0; h < gridData.GetLength(2); h++)
+        //        {
+        //            tileData[w, h] = new TileGrid.TileData();
 
-                    var tileID = gridData[layerID, w, h];
+        //            var tileID = gridData[layerID, w, h];
 
-                    if (tileID < 0)
-                        tileID = 0;
+        //            if (tileID < 0)
+        //                tileID = 0;
 
-                    var textureTileID = Game._Game.TileTextureFactory.TileTextures[tileID].TextureIndex;
-                    if (textureID != null && textureTileID != textureID)
-                    {
-                        tileData[w, h].IsVisible = false;
-                        //tileData[w, h].TileID = 0;
-                    }
-                    else
-                    {
-                        tileData[w, h].IsVisible = true;
-                        tileData[w, h].TileID = tileID;
-                    }
-                }
-            }
+        //            var textureTileID = Game._Game.TileTextureFactory.TileTextures[tileID].TextureIndex;
+        //            if (textureID != null && textureTileID != textureID)
+        //            {
+        //                tileData[w, h].IsVisible = false;
+        //                //tileData[w, h].TileID = 0;
+        //            }
+        //            else
+        //            {
+        //                tileData[w, h].IsVisible = true;
+        //                tileData[w, h].TileID = tileID;
+        //            }
+        //        }
+        //    }
 
-            return tileData;
-        }
+        //    return tileData;
+        //}
     }
 }

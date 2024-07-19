@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using static OpenGL.App.Core.TileFactory.TileTextureFactory;
+using static OpenGL.App.Core.TileGridView;
 using static OpenGL.App.FFMPEG;
 
 namespace OpenGL.App.Core
@@ -16,7 +17,7 @@ namespace OpenGL.App.Core
     public class TileGridLayer
     {
         public int Layer { get; private set; }
-        public int[,] TileDataGrid { get; private set; }
+        public ShaderTileData[,] TileDataGrid { get; private set; }
 
         public List<TileGrid> TileGrids { get; private set; } = new List<TileGrid>();
 
@@ -25,7 +26,7 @@ namespace OpenGL.App.Core
         public int Width { get; private set; }
         public int Height { get; private set; }
 
-        public TileGridLayer(int layer, int[,] tileDataGrid)
+        public TileGridLayer(int layer, ShaderTileData[,] tileDataGrid)
         {
             Layer = layer;
             TileDataGrid = tileDataGrid;
@@ -36,7 +37,7 @@ namespace OpenGL.App.Core
             SetTileGrids(tileDataGrid);
         }
 
-        private void SetTileGrids(int[,] gridData)
+        private void SetTileGrids(ShaderTileData[,] gridData)
         {
             //If bindless then create 1 TileGrid
             //If normal way then make sure the tile ids are in the same TileGrid. If not then you will have to make another TileGrid
@@ -83,18 +84,21 @@ namespace OpenGL.App.Core
         //    return false;
         //}
 
-        private TileGrid.TileData[,] ConvertGridDataToTileData(int[,] gridData, int? textureID)
+        private ShaderTileData[,] ConvertGridDataToTileData(ShaderTileData[,] gridData, int? textureID)
         {
-            var tileData = new TileGrid.TileData[gridData.GetLength(0), gridData.GetLength(1)];
+            var tileData = new ShaderTileData[gridData.GetLength(0), gridData.GetLength(1)];
 
             int index = 0;
             for (int w = 0; w < gridData.GetLength(0); w++)
             {
                 for (int h = 0; h < gridData.GetLength(1); h++)
                 {
-                    tileData[w, h] = new TileGrid.TileData();
+                    tileData[w, h] = new ShaderTileData();
 
-                    var textureTileID = Game._Game.TileTextureFactory.TileTextures[gridData[w, h]].TextureIndex;
+                    var textureTileID = Game._Game.TileTextureFactory.TileTextures[gridData[w, h].TileID].TextureIndex;
+
+                    tileData[w, h].Depth = gridData[w, h].Depth;
+
                     if (textureID != null && textureTileID != textureID)
                     {
                         tileData[w, h].IsVisible = false;
@@ -103,7 +107,7 @@ namespace OpenGL.App.Core
                     else
                     {
                         tileData[w, h].IsVisible = true;
-                        tileData[w, h].TileID = gridData[w, h];
+                        tileData[w, h].TileID = gridData[w, h].TileID;
                     }
                 }
             }
@@ -172,25 +176,25 @@ namespace OpenGL.App.Core
             }
         }
 
-        public void UpdateTileData(int x, int y, int ID)
+        public void UpdateTileData(int x, int y, ShaderTileData ID)
         {
             //If bindless then use first and only TileGrid
             //If not then need to look up old tileID and new tileId. If oldTileID isn't in same texture then remove it and add it to new TileGrid.
 
             var oldTileID = TileDataGrid[x,y];
-            var oldTextureIndex = Game._Game.TileTextureFactory.GetTextureTileIndexByTileID(oldTileID);
-            var newTextureIndex = Game._Game.TileTextureFactory.GetTextureTileIndexByTileID(ID);
+            var oldTextureIndex = Game._Game.TileTextureFactory.GetTextureTileIndexByTileID(oldTileID.TileID);
+            var newTextureIndex = Game._Game.TileTextureFactory.GetTextureTileIndexByTileID(ID.TileID);
 
             if (oldTextureIndex != newTextureIndex)
             {
                 var tileGridOld = TileGrids.FirstOrDefault(x => x.TileFactoryTextureID == oldTextureIndex);
-                tileGridOld.UpdateTile(x, y, false);
+                tileGridOld.HideTile(x, y);
 
                 var tileGridNew = TileGrids.FirstOrDefault(x => x.TileFactoryTextureID == newTextureIndex);
 
                 if (tileGridNew == null)
                 {
-                    var texture = Game._Game.TileTextureFactory.TileTextures[ID];
+                    var texture = Game._Game.TileTextureFactory.TileTextures[ID.TileID];
                     tileGridNew = new TileGrid(Width,Height, true, texture.TextureIndex);
                     
                     TileGrids.Add(tileGridNew);
@@ -204,7 +208,7 @@ namespace OpenGL.App.Core
                 tileGrid.UpdateTile(x, y, ID);
             }
 
-            TileDataGrid[x, y] = ID;
+            TileDataGrid[x, y].TileID = ID.TileID;
         }
 
 

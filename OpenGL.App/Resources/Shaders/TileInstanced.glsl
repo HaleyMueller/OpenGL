@@ -48,7 +48,14 @@ void main()
     if (isVisible < 1.0) {
         color = vec4(0.0, 0.0, 0.0, 0.0);
     }else{
-    color = #TextureIDToColor
-    color = vec4(color.rgb * Depth, color.a);
+        if (Depth == 0)
+        {
+            color = #TextureIDToColor
+        }
+        else
+        {
+            color = #TextureIDToColor
+            color = vec4(color.rgb * clamp(1 - (Depth * 0.25), 0, 1), color.a);
+        }
     }
 }

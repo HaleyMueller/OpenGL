@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using static OpenGL.App.Core.TileGridView;
 
 namespace OpenGL.App.Core
 {
@@ -134,7 +135,7 @@ namespace OpenGL.App.Core
                 return tileTexture.TextureDepth;
             }
 
-            public List<int> GetTextureIndicesForTileIDs(int[,] tileIDs)
+            public List<int> GetTextureIndicesForTileIDs(ShaderTileData[,] tileIDs)
             {
                 var ret = new List<int>();
 
@@ -142,7 +143,7 @@ namespace OpenGL.App.Core
                 {
                     for (int y = 0; y < tileIDs.GetLength(1); y++)
                     {
-                        var tileTexture = TileTextures[tileIDs[x, y]]; //Grab tileID
+                        var tileTexture = TileTextures[tileIDs[x, y].TileID]; //Grab tileID
                         ret.Add(tileTexture.TextureIndex);
                     }
                 }

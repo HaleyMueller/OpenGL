@@ -12,6 +12,7 @@ using static OpenGL.App.Core.TileFactory;
 using OpenGL.App.Core.Texture;
 using System.Diagnostics;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using static OpenGL.App.Core.TileGridView;
 
 namespace OpenGL.App.Core
 {
@@ -33,7 +34,7 @@ namespace OpenGL.App.Core
 
         public int TileFactoryTextureID { get; private set; }
 
-        public TileGrid(TileData[,] data, bool isInstanced, int tileFactoryTextureID) : base()
+        public TileGrid(ShaderTileData[,] data, bool isInstanced, int tileFactoryTextureID) : base()
         {
             Width = data.GetLength(0);
             Height = data.GetLength(1);
@@ -99,23 +100,23 @@ namespace OpenGL.App.Core
         /// <summary>
         /// Updates a tile. Make sure to call SendTiles() when done
         /// </summary>
-        public void UpdateTile(int w, int h, int tileID)
+        public void UpdateTile(int w, int h, ShaderTileData tileID)
         {
             int index = w * Height + h;
 
-            var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileID);
+            var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(tileID.TileID);
 
-            Tiles[index] = new Resources.Shaders.TileInstancedTileID(textureTileID, tileID == -1 ? false : true, .1f);
+            Tiles[index] = new Resources.Shaders.TileInstancedTileID(textureTileID, tileID.TileID == -1 ? false : true, tileID.Depth);
         }
 
-        public void UpdateTile(int w, int h, bool isVisible)
+        public void HideTile(int w, int h)
         {
             int index = w * Height + h;
 
-            Tiles[index] = new Resources.Shaders.TileInstancedTileID(Tiles[index].TextureID, isVisible, .1f);
+            Tiles[index] = new Resources.Shaders.TileInstancedTileID(Tiles[index].TextureID, false, 0);
         }
 
-        public void UpdateTile(TileData[,] tileDatas)
+        public void UpdateTile(ShaderTileData[,] tileDatas)
         {
             Tiles = TileIDs(tileDatas);
         }
@@ -140,7 +141,7 @@ namespace OpenGL.App.Core
             return vertices;
         }
 
-        private Resources.Shaders.TileInstancedTileID[] TileIDs(TileData[,] tileData)
+        private Resources.Shaders.TileInstancedTileID[] TileIDs(ShaderTileData[,] tileData)
         {
             var vertices = new Resources.Shaders.TileInstancedTileID[Width * Height];
 
@@ -153,19 +154,19 @@ namespace OpenGL.App.Core
                 for (int h = 0; h < Height; h++)
                 {
                     var textureTileID = Game._Game.TileTextureFactory.GetTextureTileIDByTileID(newTileData[w, h].TileID);
-                    vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID, newTileData[w, h].IsVisible, .1f);
+                    vertices[index++] = new Resources.Shaders.TileInstancedTileID(textureTileID, newTileData[w, h].IsVisible, newTileData[w, h].Depth);
                 }
             }
 
             return vertices;
         }
 
-        static TileData[,] RotateMatrix90Degrees(TileData[,] matrix)
+        static ShaderTileData[,] RotateMatrix90Degrees(ShaderTileData[,] matrix)
         {
             int rowCount = matrix.GetLength(0);
             int colCount = matrix.GetLength(1);
 
-            TileData[,] result = new TileData[colCount, rowCount];
+            ShaderTileData[,] result = new ShaderTileData[colCount, rowCount];
 
             for (int row = 0; row < rowCount; row++)
             {
@@ -178,12 +179,12 @@ namespace OpenGL.App.Core
             return result;
         }
 
-        [DebuggerDisplay("TileID = {TileID} IsVisible = {IsVisible}")]
-        public class TileData
-        {
-            public int TileID { get; set; }
-            public bool IsVisible { get; set; }
-        }
+        //[DebuggerDisplay("TileID = {TileID} IsVisible = {IsVisible}")]
+        //public class TileData
+        //{
+        //    public int TileID { get; set; }
+        //    public bool IsVisible { get; set; }
+        //}
 
         private Resources.Shaders.TileInstancedTileID[] TileIDs()
         {
