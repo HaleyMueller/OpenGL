@@ -12,8 +12,7 @@ namespace OpenGL.App.Core
     /// </summary>
     public class TileGridView
     {
-        public TileGrid[] TileGrids = new TileGrid[5];
-        public TileGridLayer[] TileGridLayers = new TileGridLayer[5];
+        public List<TileGridLayer> TileGridLayers = new List<TileGridLayer>();
 
         public int[,,] ChunkData { get; set; }
 
@@ -149,37 +148,44 @@ namespace OpenGL.App.Core
             return newArray;
         }
 
+        public void AddOrUpdateTileGridLayer(int layer, int[,,] data)
+        {
+            var tileData = Convert3DimArrayTo2(layer, data);
+
+            TileGridLayer tileGridLayer;
+            if (layer >= TileGridLayers.Count)
+            {
+                tileGridLayer = new TileGridLayer(layer, tileData);
+                TileGridLayers.Add(tileGridLayer);
+                TileGridLayers[layer].GPU_Use();
+            }
+            else if (TileGridLayers[layer] == null)
+            {
+                TileGridLayers[layer] = new TileGridLayer(layer, tileData);
+                TileGridLayers[layer].GPU_Use();
+            }
+            else
+            {
+                for (int i = 0; i < tileData.GetLength(0); i++)
+                {
+                    for (int x = 0; x < tileData.GetLength(1); x++)
+                    {
+                        TileGridLayers[layer].UpdateTileData(i, x, tileData[i, x]);
+                    }
+                }
+                TileGridLayers[layer].SendTiles();
+                TileGridLayers[layer].GPU_Use();
+            }
+            
+        }
+
         public void GPU_Use()
         {
             var tiles = VisibleTiles();
 
             for (int layer = 0; layer < tiles.GetLength(0); layer++)
             {
-                var convertedGridData = ConvertGridDataToTileData(tiles, layer, null);
-
-                if (TileGridLayers[layer] == null)
-                {
-                    TileGridLayers[layer] = new TileGridLayer(layer, Convert3DimArrayTo2(layer, tiles));
-                    var temp = layer + 1;
-
-                    foreach (var grid in TileGridLayers[layer].TileGrids)
-                    {
-                        grid.Position.Z = temp * .15f;
-                    }
-                    TileGridLayers[layer].GPU_Use();
-                }
-                else
-                {
-                    for (int i = 0; i < tiles.GetLength(1); i++)
-                    {
-                        for (int x = 0; x < tiles.GetLength(2); x++)
-                        {
-                            TileGridLayers[layer].UpdateTileData(i, x, tiles[layer,i,x]);
-                        }
-                    }
-                    TileGridLayers[layer].SendTiles();
-                    TileGridLayers[layer].GPU_Use();
-                }
+                AddOrUpdateTileGridLayer(layer, tiles);
             }
         }
 
