@@ -64,25 +64,7 @@ namespace OpenGL.App.Core
                     i++;
                 }
             }
-
-            //TileDataGrid = gridData;
         }
-
-        //internal bool HasATransparentTile()
-        //{
-        //    for (int w = 0; w < TileDataGrid.GetLength(0); w++)
-        //    {
-        //        for (int h = 0; h < TileDataGrid.GetLength(1); h++)
-        //        {
-        //            if (TileDataGrid[w, h] == 8)
-        //            {
-        //                return true;
-        //            }
-        //        }
-        //    }
-
-        //    return false;
-        //}
 
         private ShaderTileData[,] ConvertGridDataToTileData(ShaderTileData[,] gridData, int? textureID)
         {
@@ -209,39 +191,6 @@ namespace OpenGL.App.Core
             }
 
             TileDataGrid[x, y].TileID = ID.TileID;
-        }
-
-
-        public static void CopyMultiDimensionalArray(Array sourceArray, Array destinationArray)
-        {
-            if (sourceArray.Rank != destinationArray.Rank)
-            {
-                throw new ArgumentException("Arrays must have the same number of dimensions.");
-            }
-
-            int[] lengths = new int[sourceArray.Rank];
-            for (int i = 0; i < sourceArray.Rank; i++)
-            {
-                lengths[i] = sourceArray.GetLength(i);
-            }
-
-            CopyRecursive(sourceArray, destinationArray, new int[sourceArray.Rank], lengths, 0);
-        }
-
-        private static void CopyRecursive(Array sourceArray, Array destinationArray, int[] indices, int[] lengths, int dimension)
-        {
-            if (dimension == sourceArray.Rank)
-            {
-                destinationArray.SetValue(sourceArray.GetValue(indices), indices);
-            }
-            else
-            {
-                for (int i = 0; i < lengths[dimension]; i++)
-                {
-                    indices[dimension] = i;
-                    CopyRecursive(sourceArray, destinationArray, indices, lengths, dimension + 1);
-                }
-            }
         }
 
         public void Dispose()

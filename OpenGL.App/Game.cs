@@ -33,6 +33,9 @@ namespace OpenGL.App
 {
     public class Game : GameWindow
     {
+        public bool PlayVideo = true;
+        public bool WorldGen = true;
+
         public static Game _Game;
 
         public Camera MainCamera;
@@ -91,14 +94,8 @@ namespace OpenGL.App
         public bool IsBindlessSupported;
         public int MaxArrayTextureLayers;
 
-        //public TileGameObject Tile;
-
-
 
         public Video VideoFromFile;
-
-        public bool PlayVideo = true;
-        public bool WorldGen = true;
 
         public TileGridLayer TileGridLayer;
         public TileGridView TileGridView;
@@ -148,6 +145,24 @@ namespace OpenGL.App
 
                 //MainCamera = new Camera(new Vector3(80, 65, 3), null, zoom: 17);
                 MainCamera = new Camera(new Vector3(x, y, 3), null, zoom: 5);
+
+                int[,,] tileData = new int[1, VideoFromFile.Width, VideoFromFile.Height];
+
+                for (int i = 0; i < tileData.GetLength(1); i++)
+                {
+                    for (int j = 0; j < tileData.GetLength(2); j++)
+                    {
+                        int tileID = 6;
+                        if (VideoFromFile.Frames.FirstOrDefault().Pixels[i, j])
+                        {
+                            tileID = 5;
+                        }
+
+                        tileData[0, i, j] = tileID;
+                    }
+                }
+
+                TileGridView = new TileGridView(0, tileData);
             }
             else if (WorldGen)
             {
@@ -339,6 +354,13 @@ namespace OpenGL.App
 
                         var frame = VideoFromFile.Frames[(int)frameNumber];
 
+                        //TileGridView.ShaderTileData[,,] tileData = new TileGridView.ShaderTileData[1, VideoFromFile.Width, VideoFromFile.Height];
+
+                        int[,,] tileData = new int[1, VideoFromFile.Width, VideoFromFile.Height];
+                        TileGridView.ShaderTileData[,,] tileDataa = new TileGridView.ShaderTileData[1, VideoFromFile.Width, VideoFromFile.Height];
+
+                        int[,] tileGridLayerData = new int[VideoFromFile.Width, VideoFromFile.Height];
+
                         for (int w = 0; w < VideoFromFile.Width; w++)
                         {
                             for (int h = 0; h < VideoFromFile.Height; h++)
@@ -348,9 +370,23 @@ namespace OpenGL.App
                                 var width = (VideoFromFile.Width - w) - 1;
                                 var height = (VideoFromFile.Height - h) - 1;
 
+                                int tileID = 6;
+                                if (frame.Pixels[w, h])
+                                {
+                                    tileID = 5;
+                                }
+
+                                tileGridLayerData[w, h] = tileID;
+
+                                tileDataa[0, w, h] = new TileGridView.ShaderTileData() { Depth = 0, IsVisible = true, TileID = tileID };
+
+
                                 //TileGrid.UpdateTile(w, height, (pixel ? 6 : 4));
                             }
                         }
+
+                        //UpdateTileChunkData(tileGridLayerData, 0, ref TileGridView.ChunkData);
+                        TileGridView.SendTiles(0, tileDataa, false);
 
                         //TileGrid.SendTiles();
                     }

@@ -16,6 +16,9 @@ using static OpenGL.App.Core.TileGridView;
 
 namespace OpenGL.App.Core
 {
+    /// <summary>
+    /// This visible instanced tiles
+    /// </summary>
     public class TileGrid : GameObject
     {
         public DateTime LastUsed { get; set; }

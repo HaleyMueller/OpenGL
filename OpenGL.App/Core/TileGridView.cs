@@ -15,7 +15,7 @@ namespace OpenGL.App.Core
     {
         public List<TileGridLayer> TileGridLayers = new List<TileGridLayer>();
 
-        public int[,,] ChunkData { get; set; }
+        public int[,,] ChunkData;
 
         public int CurrentLayer { get; private set; }
 
@@ -244,10 +244,44 @@ namespace OpenGL.App.Core
                 TileGridLayers[layer].SendTiles();
                 return TileGridLayers[layer].GPU_Use();
             }
-            
         }
 
-        public void LastUsed()
+        public void SendTiles(int layer, ShaderTileData[,,] data, bool clearIsVisibleCache)
+        {
+            var tileData = Convert3DimArrayTo2(layer, data);
+
+            TileGridLayer tileGridLayer;
+            if (layer >= TileGridLayers.Count)
+            {
+                Console.WriteLine("Creating new layer. Layers: " + TileGridLayers.Count);
+                tileGridLayer = new TileGridLayer(layer, tileData);
+                TileGridLayers.Add(tileGridLayer);
+                Console.WriteLine("Added new layer. Layers: " + TileGridLayers.Count);
+            }
+            else if (TileGridLayers[layer] == null)
+            {
+                TileGridLayers[layer] = new TileGridLayer(layer, tileData);
+            }
+            else
+            {
+                for (int i = 0; i < tileData.GetLength(0); i++)
+                {
+                    for (int x = 0; x < tileData.GetLength(1); x++)
+                    {
+                        ChunkData[layer, i, x] = tileData[i, x].TileID;
+                        TileGridLayers[layer].UpdateTileData(i, x, tileData[i, x]);
+                    }
+                }
+            }
+
+            if (clearIsVisibleCache)
+                _VisibleTiles = null;
+
+            TileGridLayers[layer].SendTiles();
+        }
+
+
+        public void ClearUnusedLayersFromMemory()
         {
             for (int i = 0; i <  TileGridLayers.Count; i++)
             {
@@ -274,8 +308,8 @@ namespace OpenGL.App.Core
         public List<Hate> GPU_Use()
         {
             var ret = new List<Hate>();
-            var tiles = VisibleTiles();
-            LastUsed();
+            var tiles = VisibleTiles(); //TODO Cache this and only check on layer change
+            //ClearUnusedLayersFromMemory();
 
             for (int layer = 0; layer < tiles.GetLength(0); layer++)
             {
@@ -296,6 +330,7 @@ namespace OpenGL.App.Core
                     ret[i, x] = new ShaderTileData();
                     ret[i, x].TileID = data[index, i,x].TileID;
                     ret[i, x].Depth = data[index, i,x].Depth;
+                    ret[i, x].IsVisible = data[index, i,x].IsVisible;
                 }
             }
 
@@ -325,38 +360,5 @@ namespace OpenGL.App.Core
 
             return ret;
         }
-
-        //private TileGrid.TileData[,] ConvertGridDataToTileData(int[,,] gridData, int layerID, int? textureID)
-        //{
-        //    var tileData = new TileGrid.TileData[gridData.GetLength(1), gridData.GetLength(2)];
-
-        //    int index = 0;
-        //    for (int w = 0; w < gridData.GetLength(1); w++)
-        //    {
-        //        for (int h = 0; h < gridData.GetLength(2); h++)
-        //        {
-        //            tileData[w, h] = new TileGrid.TileData();
-
-        //            var tileID = gridData[layerID, w, h];
-
-        //            if (tileID < 0)
-        //                tileID = 0;
-
-        //            var textureTileID = Game._Game.TileTextureFactory.TileTextures[tileID].TextureIndex;
-        //            if (textureID != null && textureTileID != textureID)
-        //            {
-        //                tileData[w, h].IsVisible = false;
-        //                //tileData[w, h].TileID = 0;
-        //            }
-        //            else
-        //            {
-        //                tileData[w, h].IsVisible = true;
-        //                tileData[w, h].TileID = tileID;
-        //            }
-        //        }
-        //    }
-
-        //    return tileData;
-        //}
     }
 }
