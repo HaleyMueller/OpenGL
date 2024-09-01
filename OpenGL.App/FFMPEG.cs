@@ -24,6 +24,11 @@ namespace OpenGL.App
 
         private async Task<Video> _MakeVideoIntoBitmaps(string videoPath, string tempPath)
         {
+            if (Directory.Exists("tmp") == false)
+            {
+                Directory.CreateDirectory("tmp");
+            }
+
             var ret = new Video();
             // Create a new process
             Process process = new Process();

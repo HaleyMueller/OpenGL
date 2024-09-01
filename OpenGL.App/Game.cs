@@ -97,7 +97,7 @@ namespace OpenGL.App
 
         public Video VideoFromFile;
 
-        public bool PlayVideo = false;
+        public bool PlayVideo = true;
         public bool WorldGen = true;
 
         public TileGridLayer TileGridLayer;
